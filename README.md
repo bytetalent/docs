@@ -41,6 +41,8 @@ Example structure for a base repo's `docs/`:
 
 ## Index
 
+**Standards (cross-stack patterns):**
+
 - [`guide-code.md`](guide-code.md) — coding standards, naming, file size, types, security, performance, DoD
 - [`guide-arch.md`](guide-arch.md) — standardized access paths, ETag/If-Match, proxy egress, vault, RLS, connections framework
 - [`guide-db.md`](guide-db.md) — schema conventions, audit fields, soft-delete, RLS templates, JSONB shape rules
@@ -51,6 +53,14 @@ Example structure for a base repo's `docs/`:
 - [`guide-testing.md`](guide-testing.md) — unit/integration/E2E split, Playwright project structure, Clerk test mode, CI gating
 - [`guide-review.md`](guide-review.md) — review categories, severity rubric, output format, version currency audit
 - [`guide-deploy.md`](guide-deploy.md) — deployment principles (commands live in stack overlays)
+
+**Building the building blocks:**
+
+- [`guide-base-development.md`](guide-base-development.md) — how a Bytetalent base repo is structured, modified, versioned; how to add a base for a new stack
+- [`guide-template-development.md`](guide-template-development.md) — how a template is structured + paired with design; the matrix concept; pairing rule + lint; versioning + pinning
+
+**Tooling:**
+
 - [`guide-pencil.md`](guide-pencil.md) — Pencil MCP capabilities for `.pen` design files
 
 ## License
