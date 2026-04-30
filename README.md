@@ -63,6 +63,7 @@ Example structure for a base repo's `docs/`:
 **Tooling:**
 
 - [`guide-pencil.md`](guide-pencil.md) — Pencil MCP capabilities for `.pen` design files
+- [`guide-connections.md`](guide-connections.md) — what each provider connection does, how to revoke, what breaks if revoked (Anthropic, GitHub App, Vercel, Cloudflare, Supabase, Clerk, Stripe, Resend, Upstash, Sentry)
 
 ## License
 
