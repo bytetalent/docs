@@ -56,6 +56,7 @@ Example structure for a base repo's `docs/`:
 
 **Building the building blocks:**
 
+- [`guide-pipeline.md`](guide-pipeline.md) — end-to-end picture: how `bt-ai-web`, `bytetalent/docs`, the bases, the templates, and generated client repos fit together; setup wizard → AI phases → provisioning → code-gen → deploy
 - [`guide-base-development.md`](guide-base-development.md) — how a Bytetalent base repo is structured, modified, versioned; how to add a base for a new stack
 - [`guide-template-development.md`](guide-template-development.md) — how a template is structured + paired with design; the matrix concept; pairing rule + lint; versioning + pinning
 
