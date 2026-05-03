@@ -152,6 +152,42 @@ Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring 
 - [`skills/base-development`](skills/base-development/SKILL.md) — how to structure, version, and extend a Bytetalent base repo
 - [`skills/template-development`](skills/template-development/SKILL.md) — how to author a template paired with a Pencil design
 
+## Pattern skills (`skills/paths/`)
+
+Reusable full-stack patterns extracted from production code. Each skill documents a named, templatable shape the code-gen agent follows when a feature matches that pattern. See `app-flow-ai-web/docs/patterns-inventory.md` for the source inventory.
+
+**Page architecture:**
+
+- [`skills/paths/server-client-page-split`](skills/paths/server-client-page-split/SKILL.md) — RSC + `"use client"` page-pair convention; thin server wrapper delegates to interactive client component
+- [`skills/paths/detail-page-with-tabs`](skills/paths/detail-page-with-tabs/SKILL.md) — multi-view entity detail with inline border-b tab bar; local or URL-synced state
+- [`skills/paths/settings-sections-page`](skills/paths/settings-sections-page/SKILL.md) — settings page as a vertical stack of isolated named section cards
+
+**List + data access:**
+
+- [`skills/paths/paginated-data-table`](skills/paths/paginated-data-table/SKILL.md) — list-of-entities page with stat cards, DataTable, DataToolbar, bulk actions, empty state
+- [`skills/paths/entity-list-hook`](skills/paths/entity-list-hook/SKILL.md) — three-layer generic→domain→page hook stack for all list surfaces
+
+**Multi-step forms:**
+
+- [`skills/paths/wizard`](skills/paths/wizard/SKILL.md) — multi-step form with URL-driven step state, progress indicator, back/next nav, terminal action
+
+**UI organization:**
+
+- [`skills/paths/collapsible-section-stack`](skills/paths/collapsible-section-stack/SKILL.md) — dense entity-editing pages organized as a vertical stack of CollapsiblePanel sections
+- [`skills/paths/modal-dialog-action`](skills/paths/modal-dialog-action/SKILL.md) — overlay-based action pattern: ConfirmDialog, slide-over panel, read-only modal
+
+**Mutations + feedback:**
+
+- [`skills/paths/async-toast-mutation`](skills/paths/async-toast-mutation/SKILL.md) — set-busy → fetch → appToast → clear-busy frame for every write action
+- [`skills/paths/fetch-error-retry`](skills/paths/fetch-error-retry/SKILL.md) — FetchErrorBanner + retry mechanism for initial load failures
+
+**API patterns:**
+
+- [`skills/paths/resolve-account-route-handler`](skills/paths/resolve-account-route-handler/SKILL.md) — `resolveAccount()` + 401 guard as the opening block of every protected route handler
+- [`skills/paths/api-error-handler`](skills/paths/api-error-handler/SKILL.md) — try/catch + `apiError()` terminal error frame for all route handlers
+- [`skills/paths/optimistic-crud-with-etag`](skills/paths/optimistic-crud-with-etag/SKILL.md) — integer version + ETag/If-Match optimistic concurrency for mutable entities
+- [`skills/paths/soft-delete-api-resource`](skills/paths/soft-delete-api-resource/SKILL.md) — soft-delete via deletedAt/isArchived + `notDeleted()` helper in every SELECT
+
 ## License
 
 Proprietary — Bytetalent internal use.
