@@ -1,11 +1,11 @@
 ---
 name: Server Client Page Split
-description: Next.js App Router RSC + "use client" page-pair pattern — thin server wrapper delegates to the interactive client component.
+description: Next.js App Router RSC + "use client" page-pair pattern — thin server wrapper delegates to the interactive client component. Includes Suspense requirement for useSearchParams.
 category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
-version: 1
-composes_with: []
+version: 2
+composes_with: [wizard, entity-list-hook]
 nests: []
 conflicts_with: []
 ---
@@ -110,7 +110,93 @@ export function ClientPage() {
 - Use **server-resolved hydration** when: you need to resolve a URL slug to a DB row ID, or you want to pass initial seed data to avoid a loading flash.
 - Use **pure delegation** when: the page handles its own data fetching via SWR/fetch hooks, or there is no route parameter to resolve.
 
+## Suspense requirement for useSearchParams
+
+**When a client component reads `useSearchParams()`, `usePathname()`, or `useRouter()` from `next/navigation`, Next.js 14+ requires a `<Suspense>` boundary wrapping the consumer.** Without it, the build fails (or static export fails) with an error like:
+
+```
+Error: useSearchParams() should be wrapped in a suspense boundary at page "/space/flows"
+```
+
+This commonly affects wizard pages (URL-encoded step/field state), entity list pages (URL-driven filters), and any page using `useRouter` for navigation.
+
+### Pure delegation — no useSearchParams (no Suspense needed)
+
+```tsx
+// page.tsx — safe, no Suspense needed
+import { ClientPage } from "./page-client";
+
+export default function Page() {
+  return <ClientPage />;
+}
+```
+
+```tsx
+// page-client.tsx
+"use client";
+
+export function ClientPage() {
+  // Does NOT call useSearchParams / usePathname / useRouter
+}
+```
+
+### Client component reads useSearchParams — Suspense required
+
+```tsx
+// page.tsx — wrap with Suspense
+import { Suspense } from "react";
+import { ClientPage } from "./page-client";
+import { LoadingSpinner } from "@/components/shared/comp-loading-spinner";
+
+export default function Page() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <ClientPage />
+    </Suspense>
+  );
+}
+```
+
+```tsx
+// page-client.tsx
+"use client";
+import { useSearchParams } from "next/navigation";
+
+export function ClientPage() {
+  const searchParams = useSearchParams(); // safe — wrapped in Suspense above
+  const status = searchParams.get("status") ?? "all";
+  // ...
+}
+```
+
+### Server-resolved hydration — no Suspense needed in page.tsx
+
+When `page.tsx` resolves the slug and passes props down, the client component typically doesn't need `useSearchParams` for initialization (seed data comes from props). Suspense is still needed if the client component calls `useSearchParams` for secondary state (e.g., tab selection):
+
+```tsx
+// page.tsx — resolves slug, no Suspense for the seed data
+export default async function Page({ params }: Props) {
+  const project = await db.query.projects.findFirst({ ... });
+  if (!project) notFound();
+
+  return (
+    // Still wrap if page-client.tsx uses useSearchParams internally
+    <Suspense fallback={<LoadingSpinner />}>
+      <ClientPage projectId={project.id} />
+    </Suspense>
+  );
+}
+```
+
+### Rule of thumb
+
+> If `page-client.tsx` (or any component it renders) imports anything from `next/navigation`, wrap `<ClientPage />` in `<Suspense>` in `page.tsx`. When in doubt, add it — a redundant Suspense boundary is harmless; a missing one breaks the build.
+
+Both `wizard` and `entity-list-hook` use `useSearchParams` — their page.tsx wrappers always need `<Suspense>`.
+
 ## Related skills
 
 - `skills/nextjs-app-router` — App Router conventions, layouts, loading states
 - `skills/data-access-patterns` — how the client component should fetch data
+- `skills/paths/wizard` — uses useSearchParams for URL-encoded step + field state
+- `skills/paths/entity-list-hook` — domain hook reads useSearchParams for initial filters

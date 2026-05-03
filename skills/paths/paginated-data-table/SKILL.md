@@ -1,11 +1,11 @@
 ---
 name: Paginated Data Table
-description: List-of-entities page with stat cards, toolbar (filters, bulk actions), DataTable rows, and empty state.
+description: List-of-entities page with stat cards, toolbar (filters, bulk actions), DataTable rows, and empty state. Stat cards live inside a CollapsiblePanel when the page uses collapsible-section-stack.
 category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
-version: 1
-composes_with: [entity-list-hook, async-toast-mutation, fetch-error-retry, server-client-page-split]
+version: 2
+composes_with: [entity-list-hook, async-toast-mutation, fetch-error-retry, server-client-page-split, collapsible-section-stack]
 nests: [modal-dialog-action]
 conflicts_with: []
 ---
@@ -162,8 +162,60 @@ For lists under ~50 items with no bulk actions or complex filters, use a simple 
 </table>
 ```
 
+## Stat-card placement — stat-card-in-panel pattern
+
+When the list page is organized with `collapsible-section-stack`, stat cards go **inside a `<CollapsiblePanel>`** — not in a plain `<div>`. This keeps them collapsible when the user wants to focus on the table.
+
+```tsx
+// Good — stat cards wrapped in CollapsiblePanel
+import { CollapsiblePanel } from "@/components/shared/comp-collapsible";
+import { BarChart3 } from "lucide-react";
+
+<CollapsiblePanel
+  title="Statistics"
+  icon={<BarChart3 className="w-4 h-4" />}
+  defaultOpen={true}
+>
+  <div className="grid grid-cols-3 gap-4 py-2">
+    <StatCard label="Total" value={stats.total} />
+    <StatCard label="Active" value={stats.active} />
+    <StatCard label="Archived" value={stats.archived} />
+  </div>
+</CollapsiblePanel>
+
+{/* toolbar + table follow outside the panel */}
+<DataToolbar ... />
+<DataTable ... />
+```
+
+```tsx
+// Bad — plain div for stat cards (use when there is no collapsible-section-stack context)
+<div className="grid grid-cols-3 gap-4 mb-6">
+  <StatCard label="Total" value={stats.total} />
+  <StatCard label="Active" value={stats.active} />
+  <StatCard label="Archived" value={stats.archived} />
+</div>
+// Only acceptable if the page does NOT use CollapsiblePanel for other sections.
+// Once any section uses CollapsiblePanel, stat cards must also be in a panel.
+```
+
+The hierarchy when using `collapsible-section-stack`:
+
+```
+DashboardPageLayout
+  └─ div.space-y-4
+       ├─ CollapsiblePanel title="Statistics" icon={<BarChart3 />}  ← stat cards
+       │    └─ div.grid.grid-cols-3
+       │         ├─ StatCard "Total"
+       │         ├─ StatCard "Active"
+       │         └─ StatCard "Archived"
+       ├─ DataToolbar  ← toolbar (outside panel)
+       └─ DataTable    ← table rows (outside panel)
+```
+
 ## Related skills
 
 - `skills/paths/entity-list-hook` — the data layer that backs this component
 - `skills/table-patterns` — server-side pagination, sorting, filtering
 - `skills/paths/fetch-error-retry` — error banner + retry mechanism
+- `skills/paths/collapsible-section-stack` — when stat cards live inside a CollapsiblePanel (stat-card-in-panel pattern)
