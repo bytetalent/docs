@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [async-toast-mutation, server-client-page-split, form-patterns]
+nests: [modal-dialog-action]
+conflicts_with: []
 ---
 
 A wizard is a linear multi-step user journey. The PRD specifies what the steps are and what each step collects. This skill documents the code structure the code-gen agent should produce for any wizard regardless of domain content.

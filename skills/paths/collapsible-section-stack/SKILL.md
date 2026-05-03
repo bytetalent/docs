@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [async-toast-mutation]
+nests: [form-patterns]
+conflicts_with: [detail-page-with-tabs]
 ---
 
 When an entity has many fields that don't all need to be visible at once, organize them into a vertical stack of named collapsible panels. Each panel groups logically related fields under a title.

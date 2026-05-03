@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [fetch-error-retry]
+nests: []
+conflicts_with: []
 ---
 
 Every entity list page uses the same three-layer hook stack: a generic base hook (`useEntityList`) that is never called directly from pages, a domain-specific hook that closes the generics with entity-specific types, and the page that calls only the domain hook.

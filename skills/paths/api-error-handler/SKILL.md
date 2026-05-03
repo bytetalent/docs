@@ -5,6 +5,9 @@ category: api
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [error-handling-nextjs]
+nests: []
+conflicts_with: []
 ---
 
 Every route handler has the same `try { ... } catch (err) { return apiError(..., err) }` frame. Inline 4xx responses handle known failures; `apiError()` handles unexpected exceptions.

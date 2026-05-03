@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [api-error-handler]
+nests: []
+conflicts_with: []
 ---
 
 Every mutation in the app (save, delete, archive, approve, generate) follows the same frame: set an in-flight boolean, call fetch, show a success or error toast, clear the in-flight boolean. `appToast.*` is the single toast path.

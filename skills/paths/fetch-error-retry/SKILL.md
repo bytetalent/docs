@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [entity-list-hook]
+nests: []
+conflicts_with: []
 ---
 
 When a page's initial data fetch fails, the user should see a clear error message with a retry option — not a blank page or a spinner that never resolves. This pattern standardizes that recovery flow.

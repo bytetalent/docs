@@ -5,6 +5,9 @@ category: api
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [db-query-patterns, api-error-handler, resolve-account-route-handler]
+nests: []
+conflicts_with: []
 ---
 
 No resource in the system is hard-deleted from the database. DELETE routes set a `deletedAt` timestamp or `isArchived` boolean. Every SELECT query filters out soft-deleted rows using the `notDeleted()` helper.

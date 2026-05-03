@@ -5,6 +5,9 @@ category: api
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [api-error-handler, clerk-auth]
+nests: []
+conflicts_with: []
 ---
 
 Every protected Route Handler resolves the authenticated account through one function: `resolveAccount()`. This is an architectural invariant, not just a convention — using parallel auth paths caused a real production incident (PGRST002 Vault incident, 2026-04-28).
