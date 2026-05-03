@@ -143,6 +143,7 @@ Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring 
 **Orchestration + process:**
 
 - [`skills/github-api-efficiency`](skills/github-api-efficiency/SKILL.md) — bundle, cache, batch — survive the 5000 pts/hour GraphQL limit during board manipulation, issue grooming, orchestrator dispatch
+- [`skills/lessons-learned-discipline`](skills/lessons-learned-discipline/SKILL.md) — after a debug session finds root cause, run this decision flow to determine where the fix must land (tooling → guide → skill → CLAUDE.md → memory)
 
 **Pattern skills (`paths/`)** — recurring UX/data patterns code-gen agents apply per-feature:
 
