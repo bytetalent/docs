@@ -66,6 +66,78 @@ Example structure for a base repo's `docs/`:
 - [`guide-pencil.md`](guide-pencil.md) — Pencil MCP capabilities for `.pen` design files
 - [`guide-connections.md`](guide-connections.md) — what each provider connection does, how to revoke, what breaks if revoked (Anthropic, GitHub App, Vercel, Cloudflare, Supabase, Clerk, Stripe, Resend, Upstash, Sentry)
 
+## Skills
+
+Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring guide at [`guide-agents.md`](guide-agents.md). For skill-system mechanics (manifest, dual-source, scaffold copy), see app-flow-ai-web's `docs/guide-skills.md`.
+
+**Philosophy + planning:**
+
+- [`skills/module-planning`](skills/module-planning/SKILL.md) — how to decompose a feature into modules before coding
+- [`skills/philosophy-composition-over-invention`](skills/philosophy-composition-over-invention/SKILL.md) — prefer composing existing primitives over building new abstractions
+- [`skills/philosophy-feature-construction`](skills/philosophy-feature-construction/SKILL.md) — step-by-step feature construction discipline
+- [`skills/philosophy-when-no-pattern-fits`](skills/philosophy-when-no-pattern-fits/SKILL.md) — how to handle cases outside existing patterns
+
+**TypeScript + code standards:**
+
+- [`skills/typescript-strict`](skills/typescript-strict/SKILL.md) — strict TypeScript settings + enforcement rules
+- [`skills/code-review-checklist`](skills/code-review-checklist/SKILL.md) — PR checklist used during code review
+
+**API patterns:**
+
+- [`skills/api-route-conventions`](skills/api-route-conventions/SKILL.md) — REST route shape, naming, auth guard placement
+- [`skills/api-etag-optimistic-concurrency`](skills/api-etag-optimistic-concurrency/SKILL.md) — ETag/If-Match optimistic concurrency contract
+- [`skills/api-input-validation`](skills/api-input-validation/SKILL.md) — Zod-based request validation discipline
+- [`skills/api-pagination-and-filtering`](skills/api-pagination-and-filtering/SKILL.md) — server-side pagination + filter query patterns
+- [`skills/api-sse-streaming`](skills/api-sse-streaming/SKILL.md) — Server-Sent Events streaming from Next.js route handlers
+- [`skills/api-webhook-security`](skills/api-webhook-security/SKILL.md) — webhook signature verification + replay protection
+- [`skills/route-and-type-patterns`](skills/route-and-type-patterns/SKILL.md) — shared route + inferred type conventions
+
+**Data access + DB:**
+
+- [`skills/data-access-patterns`](skills/data-access-patterns/SKILL.md) — standardized DB query layer structure
+- [`skills/db-query-patterns`](skills/db-query-patterns/SKILL.md) — common Drizzle query idioms
+- [`skills/drizzle-migration-patterns`](skills/drizzle-migration-patterns/SKILL.md) — migration workflow + common schema patterns
+- [`skills/rls-policies`](skills/rls-policies/SKILL.md) — Row Level Security policy templates
+- [`skills/supabase-schema`](skills/supabase-schema/SKILL.md) — Supabase schema conventions (audit fields, soft-delete, JSONB)
+
+**Auth + security:**
+
+- [`skills/clerk-auth`](skills/clerk-auth/SKILL.md) — Clerk middleware, `resolveAccount()`, auth guard patterns
+- [`skills/scope-guard`](skills/scope-guard/SKILL.md) — permission scope-guard pattern for role-gated actions
+- [`skills/security-review`](skills/security-review/SKILL.md) — security checklist applied during review
+- [`skills/server-actions-auth`](skills/server-actions-auth/SKILL.md) — Server Actions auth + input validation discipline
+
+**Connections + infrastructure:**
+
+- [`skills/connections-framework`](skills/connections-framework/SKILL.md) — `withSecrets()` boundary, Vault reads, credential shape
+- [`skills/proxy-egress`](skills/proxy-egress/SKILL.md) — all provider traffic through proxy egress layer
+- [`skills/standardized-access-paths`](skills/standardized-access-paths/SKILL.md) — single canonical path per concern; no parallel access
+- [`skills/infra-service-defaults`](skills/infra-service-defaults/SKILL.md) — Vercel/Supabase/Cloudflare defaults for new projects
+- [`skills/cloudflare-worker`](skills/cloudflare-worker/SKILL.md) — Cloudflare Worker patterns (KV, env bindings, fetch)
+
+**Error handling + observability:**
+
+- [`skills/error-handling-nextjs`](skills/error-handling-nextjs/SKILL.md) — `apiError()` shape, error boundaries, Sentry capture
+
+**Next.js + App Router:**
+
+- [`skills/nextjs-app-router`](skills/nextjs-app-router/SKILL.md) — App Router conventions, layouts, loading states, server vs client components
+- [`skills/nextjs-component-conventions`](skills/nextjs-component-conventions/SKILL.md) — `comp-` prefix, co-location rules, barrel exports
+
+**Design + UI:**
+
+- [`skills/tailwind-and-styling`](skills/tailwind-and-styling/SKILL.md) — Tailwind utility discipline, no inline styles, token mapping
+- [`skills/design-tokens-and-theming`](skills/design-tokens-and-theming/SKILL.md) — CSS variable tokens, dark mode, theming sources of truth
+- [`skills/form-patterns`](skills/form-patterns/SKILL.md) — form validation, no-submit-flash, React Hook Form conventions
+- [`skills/table-patterns`](skills/table-patterns/SKILL.md) — server-side table patterns, FilterActionBar, SortableTableHeader
+- [`skills/marketing-layout-patterns`](skills/marketing-layout-patterns/SKILL.md) — hero sizing, CTA discipline, marketing spacing scale
+- [`skills/stat-card-and-interactive-components`](skills/stat-card-and-interactive-components/SKILL.md) — stat-card anatomy, interactive component conventions
+- [`skills/accessibility-aa`](skills/accessibility-aa/SKILL.md) — WCAG AA accessibility checklist + component requirements
+
+**Astro:**
+
+- [`skills/astro-static`](skills/astro-static/SKILL.md) — Astro Islands conventions for static/marketing sites
+
 ## License
 
 Proprietary — Bytetalent internal use.
