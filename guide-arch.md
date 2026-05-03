@@ -20,6 +20,7 @@ Every cross-cutting concern has **one** canonical path. If you think you need a 
 | Frontend → backend | **`fetch('/api/...')` from hooks** | Never call providers / Supabase REST directly from the browser. |
 | Outbound HTTP to LLM/tool providers | **Connection adapters** (`src/lib/connections/providers/<slug>.ts`) for `adapter.test()` only; everything else goes through the **proxy layer** at `POST /api/proxy/...` | See "Proxy is the sole provider egress" below. |
 | Service-role / RLS-bypass DB ops | **Drizzle** with documented intent in code comment | Don't add new clients; the legacy split-client pattern is a deprecated path. |
+| Supabase Storage operations (file upload, signed URL generation) | **`src/lib/supabase/admin.ts`** via the storage helper layer (`src/lib/storage/`) | Storage isn't expressible through Drizzle. One legitimate caller per project; don't add direct `supabaseAdmin.storage` calls outside the storage helper layer. See app-specific `CLAUDE.md` for the exact caller. |
 | ID generation | `crypto.randomUUID()` | Pick one, stick with it. Don't reach for nanoid/cuid2 alongside. |
 
 ### Why one path matters
