@@ -140,6 +140,10 @@ Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring 
 - [`skills/template-development`](skills/template-development/SKILL.md) — template anatomy, `feature.json` fields, bundle file actions, token bindings, pairing rule
 - [`skills/pencil-design`](skills/pencil-design/SKILL.md) — working with `.pen` design files via Pencil MCP — encrypted access, batch limits, session hygiene
 
+**Orchestration + process:**
+
+- [`skills/github-api-efficiency`](skills/github-api-efficiency/SKILL.md) — bundle, cache, batch — survive the 5000 pts/hour GraphQL limit during board manipulation, issue grooming, orchestrator dispatch
+
 **Pattern skills (`paths/`)** — recurring UX/data patterns code-gen agents apply per-feature:
 
 - [`skills/paths/server-client-page-split`](skills/paths/server-client-page-split/SKILL.md) — RSC + `"use client"` page-pair convention; thin server wrapper delegates to interactive client component
