@@ -90,6 +90,14 @@ vim src/lib/db/migrations/0012_add_projects.sql  # do NOT do this
 npm run db:generate  # generates 0013_fix_projects_index.sql
 ```
 
+## Common pitfall — `when` timestamp monotonicity
+
+> **Silent skip risk.** Drizzle's migrator applies a migration only if `migration.when > lastApplied.created_at`. If you manually construct or copy a journal entry with a stale `when` value (e.g., a 2025 timestamp when the last-applied entry was from 2026), Drizzle silently skips it — no error, no warning.
+>
+> Always use `drizzle-kit generate` (which calls `Date.now()` correctly) rather than copying `when` values. If you author a journal entry by hand, set `when` to `Date.now()` at authoring time and verify the value is strictly greater than all previous entries.
+>
+> See `bytetalent/docs/guide-db.md` § "Migration journal — `when` semantics" for the full model and the CI check that enforces it.
+
 ## Promotion sequence
 
 Apply migrations on each environment before deploying the code that depends on them:
