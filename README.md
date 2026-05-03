@@ -138,6 +138,20 @@ Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring 
 
 - [`skills/astro-static`](skills/astro-static/SKILL.md) — Astro Islands conventions for static/marketing sites
 
+**Design tools:**
+
+- [`skills/pencil-design`](skills/pencil-design/SKILL.md) — Pencil MCP usage for `.pen` design files (encrypted access, batch limits, session hygiene)
+
+**Testing + deploy:**
+
+- [`skills/testing-conventions`](skills/testing-conventions/SKILL.md) — unit/integration/E2E test conventions, Playwright setup, CI gating
+- [`skills/deploy-conventions`](skills/deploy-conventions/SKILL.md) — deployment principles + stack-specific deploy steps
+
+**Building the building blocks (contributor skills):**
+
+- [`skills/base-development`](skills/base-development/SKILL.md) — how to structure, version, and extend a Bytetalent base repo
+- [`skills/template-development`](skills/template-development/SKILL.md) — how to author a template paired with a Pencil design
+
 ## License
 
 Proprietary — Bytetalent internal use.
