@@ -5,7 +5,7 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
-composes_with: [async-toast-mutation]
+composes_with: [async-toast-mutation, paginated-data-table]
 nests: [form-patterns]
 conflicts_with: [detail-page-with-tabs]
 ---
@@ -180,3 +180,4 @@ const [openSections, setOpenSections] = useState<Set<string>>(
 
 - `skills/paths/settings-sections-page` — uses stacked cards; this skill uses collapsible panels
 - `skills/paths/detail-page-with-tabs` — alternate organization for mutually exclusive views
+- `skills/paths/paginated-data-table` — when a paginated list is inside a page using collapsible panels, stat cards go inside a `CollapsiblePanel` (stat-card-in-panel pattern)
