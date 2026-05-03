@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: []
+nests: []
+conflicts_with: []
 ---
 
 Every interactive page in Next.js App Router needs a thin RSC shell that satisfies the server boundary requirement. This pattern standardizes that split.

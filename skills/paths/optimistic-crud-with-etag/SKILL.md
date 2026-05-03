@@ -5,6 +5,9 @@ category: api
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [api-etag-optimistic-concurrency, api-error-handler, async-toast-mutation, resolve-account-route-handler]
+nests: []
+conflicts_with: []
 ---
 
 Every entity that can be edited from multiple tabs (or concurrent users) uses integer version columns + ETag headers to prevent lost updates. This pattern is the standard update guard.

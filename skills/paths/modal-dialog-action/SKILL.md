@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [async-toast-mutation, soft-delete-api-resource]
+nests: []
+conflicts_with: []
 ---
 
 Interactive overlays block the main content while collecting a user decision or displaying contextual detail. This pattern covers all modal shapes: destructive confirmation, data-entry slide-over, and read-only informational modal.

@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [optimistic-crud-with-etag, async-toast-mutation, fetch-error-retry, server-client-page-split]
+nests: [collapsible-section-stack, paginated-data-table]
+conflicts_with: []
 ---
 
 Entity detail pages with more than one view dimension use a tab bar with `border-b` styling. Tabs can be local `useState` (simple) or URL-synced (shareable deep links).

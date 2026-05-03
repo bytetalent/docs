@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [entity-list-hook, async-toast-mutation, fetch-error-retry, server-client-page-split]
+nests: [modal-dialog-action]
+conflicts_with: []
 ---
 
 Every entity list page follows the same structural shape: stat summary cards → toolbar (count + select-all + filters + bulk actions) → data table rows → empty state. This pattern standardizes that shape.

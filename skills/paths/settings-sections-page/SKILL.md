@@ -5,6 +5,9 @@ category: code
 applicable_phases: [code_gen]
 applicable_stacks: [nextjs-clerk-supabase, expo-clerk-supabase]
 version: 1
+composes_with: [optimistic-crud-with-etag, async-toast-mutation, server-client-page-split]
+nests: [collapsible-section-stack, modal-dialog-action]
+conflicts_with: []
 ---
 
 Settings pages are always about configuring the current user or account. They differ from detail pages (which show one entity's tabs) — settings pages are a vertical stack of named, isolated sections.
