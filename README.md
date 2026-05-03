@@ -144,6 +144,7 @@ Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring 
 
 - [`skills/github-api-efficiency`](skills/github-api-efficiency/SKILL.md) — bundle, cache, batch — survive the 5000 pts/hour GraphQL limit during board manipulation, issue grooming, orchestrator dispatch
 - [`skills/lessons-learned-discipline`](skills/lessons-learned-discipline/SKILL.md) — after a debug session finds root cause, run this decision flow to determine where the fix must land (tooling → guide → skill → CLAUDE.md → memory)
+- [`skills/board-numbering-conventions`](skills/board-numbering-conventions/SKILL.md) — Release field for stack-ranked buckets, WBS dot-decimal title prefix for within-release ordering, `state:*` labels for backlog/shovel-ready meta-status; deprecates `epic` + `lane:claude` labels
 
 **Pattern skills (`paths/`)** — recurring UX/data patterns code-gen agents apply per-feature:
 
