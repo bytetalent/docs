@@ -65,16 +65,39 @@ An item without either label is **active** in its release. Standard transitions:
 
 Multiple labels can apply (e.g., `state:backlog` + `needs:human-only`).
 
+## Assignee model — two-account ownership
+
+Items have **one owner** expressed via GitHub's native assignee field:
+
+- **`@anthony-mansfield`** = human queue. Items requiring stakeholder decisions, manual testing, real-world setup (account creation, secret rotation), or judgment the agent doesn't have context for.
+- **`@bytetalent-ai`** = agent queue. The "bytetalent.ai agent" as a coherent unit: agent personality + `.claude/settings.json` permissions + `bytetalent/docs/skills/` + `prompts/` + memory. Tasks here can be picked up by any session of any agent that loads that config.
+
+**Why two accounts and not labels:**
+
+- Native to GitHub: assignee is in every view (issue list, PR pages, search syntax, mobile app), not just the project board
+- Notifications work right (each account gets pinged on its own queue)
+- Permissions can be **scoped per account** — the agent account should have minimum-necessary permissions:
+  - Write to feature branches, open PRs, read-only on `main` / `staging`
+  - Cannot force-push, cannot bypass branch protection, cannot rotate secrets
+  - This is defense-in-depth: even a compromised agent session has limited blast radius
+
+**In-flight tracking:** assignee = **owner** (categorical, durable). Status field = **lifecycle** (Todo / In Progress / Done). Workers DON'T self-reassign on claim — they flip Status to In Progress and rely on the existing assignee.
+
+**Filtering:**
+- "Anthony's queue" = `assignee:anthony-mansfield is:open`
+- "Agent queue ready to pick up" = `assignee:bytetalent-ai is:open` filtered to `Status: Todo`
+- "Unassigned (needs triage)" = `no:assignee is:open`
+
 ## Other labels — what to use, what to skip
 
 **Use:**
-- **`needs:human-only`** — only humans can do this (decisions, manual testing, secret rotation, real-account setup). Agents skip when filtering for autonomous work.
+- **`needs:human-only`** — categorical "no agent should ever take this" (security-sensitive setup, real-account creation, manual UAT, decisions requiring stakeholder context). Typically paired with `@anthony-mansfield` assignee but the label is broader (any human, not just Anthony).
 - **`area:*`** — architectural area for filtering (e.g., `area:db`, `area:api`, `area:platform`, `area:process`, `area:infra`, `area:docs`).
 - **`cleanup`** — small follow-up issues to be batched in cleanup waves.
 
 **Don't use:**
 - **`epic`** — redundant with title prefix structure (`1` is an epic, `1.1` is a sub-issue) + sub-issue links. Removed 2026-05-03.
-- **`lane:claude`** — historically used to mark autonomous-dispatchable. The inverse (`needs:human-only`) is sufficient: items without `needs:human-only` are implicitly dispatchable to agents. Removed 2026-05-03.
+- **`lane:claude`** — historically used to mark autonomous-dispatchable. Replaced 2026-05-03 by the assignee model above.
 
 ## Putting it together — examples
 
