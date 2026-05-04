@@ -276,7 +276,62 @@ CSP is configured at the framework's headers config. Restricts scripts to `self`
 
 ---
 
-## 9. Related Standards
+## 9. Org Model
+
+The pipeline app (`bt-ai-web`) uses a three-account-type model that governs what users can do and what roles they may hold. This section documents the model for reference when building features that are account-type-aware.
+
+### Three account types
+
+| accountType | Who | Purpose |
+|---|---|---|
+| `agency` | Consultants and small agencies | Primary pipeline users. Create projects, run phases, manage clients, own credentials. |
+| `client` | Client companies | Invited by an agency. Access limited to their own projects and deliverables via the client portal. |
+| `platform` | Bytetalent | The super-admin org. Exactly one instance in production. |
+
+The `accountType` value is stored on `accounts.accountType`. Every account is exactly one type.
+
+### Member role taxonomy
+
+Each account type has its own valid set of membership roles. Roles are stored in `account_memberships.role` (a single enum). The application layer validates the combination with `isValidRoleForAccountType(role, accountType)` before any write.
+
+| accountType | Role | Description |
+|---|---|---|
+| agency | `owner` | Account creator; full admin and billing authority. |
+| agency | `consultant` | Pipeline operator; creates and manages projects. Default invited role. |
+| agency | `viewer` | Read-only observer (partner, auditor). |
+| client | `owner` | Account creator; primary contact for the agency. |
+| client | `product-owner` | Decides scope; approves deliverables. |
+| client | `reviewer` | Approves specific phases. |
+| client | `payor` | Billing relationship (may be the same person as owner). |
+| client | `stakeholder` | Read-only access to deliverables. |
+| client | `viewer` | Read-only; broadest access within client type. |
+| platform | `owner` | Bytetalent founder or top admin. |
+| platform | `staff` | Bytetalent employees with platform-wide visibility. |
+| platform | `viewer` | Read-only platform observers. |
+
+Legacy roles `admin` and `member` remain in the enum during the transition window. All new writes should use the new vocabulary. The helper `isAdminEquivalent(role)` accepts both `"owner"` and the legacy `"admin"` during the window.
+
+### Application-layer validator
+
+Use `isValidRoleForAccountType(role, accountType)` (in `src/lib/auth/roles.ts`) before inserting or updating any `account_memberships` row. This is the single enforcement point. Never write a role directly without running this check.
+
+```typescript
+// Example usage before creating a membership row
+if (!isValidRoleForAccountType(role, account.accountType)) {
+  return apiError(400, "invalid_role", `Role '${role}' is not valid for ${account.accountType} accounts`);
+}
+```
+
+### Super-admin vs. platform accountType
+
+These are two independent concepts that can both be true for the same user:
+
+- **`accountType = "platform"`** — a DB label on Bytetalent's account row. Used for data-model logic (e.g., exclude platform from agency-facing queries).
+- **`isSuperAdmin()`** — a Clerk-org membership check (`CLERK_ADMIN_ORG_ID`). Controls access to `/admin/*` routes. Works independently of `accountType`.
+
+---
+
+## 10. Related Standards
 
 - [`guide-code.md`](guide-code.md) — naming, component standards, security, testing
 - [`guide-db.md`](guide-db.md) — schema conventions, audit fields, soft-delete, RLS templates

@@ -14,7 +14,7 @@ Every Bytetalent engagement involves repos in (up to) four roles:
 | **Universal docs** | `bytetalent/docs` | One; long-lived; cross-stack standards |
 | **Base** | `bytetalent/astro-cloudflare-base`, `bytetalent/nextjs-clerk-supabase-base`, future `expo-…` | One per stack; long-lived; dogfooded at stable URLs |
 | **Templates** | `bytetalent/templates` | One; long-lived; sparse matrix of feature × stack-bundle |
-| **Generated client repo** | `{consultancy-org}/{project}` or `{client-org}/{project}` | One per pipeline project; lifetime of the engagement |
+| **Generated client repo** | `{agency-org}/{project}` or `{client-org}/{project}` | One per pipeline project; lifetime of the engagement |
 
 The first four are **Bytetalent-owned and reused**. The fifth is **per-engagement and never owned by Bytetalent**.
 
@@ -77,7 +77,7 @@ Consultant opens the pipeline app's setup wizard. Picks:
 - **Stack bundle** — `nextjs-clerk-supabase`, `astro-cloudflare`, `aspnet-azure-sql`, `expo-clerk-supabase`, etc.
 - **Client** — existing or new
 - **Brand kit** — pick from client's existing kits (R2.6) or create new
-- **Repo topology** — where the generated repo lives: consultancy's GitHub org, client's, or transfer-on-completion (decision #2)
+- **Repo topology** — where the generated repo lives: agency's GitHub org, client's, or transfer-on-completion (decision #2)
 - **Included features** — checkboxes per feature listed in `bytetalent/templates`'s feature catalog, filtered to those whose `supportedBundles` includes the chosen bundle
 
 The pipeline records all this as a `projects` row in its DB. No code is written yet.
@@ -113,7 +113,7 @@ This is where bases + templates + the agent come together. Step by step:
 
 #### 6a. Create the empty client repo
 
-The pipeline calls GitHub via the Bytetalent App install token (R1-3) to create a new empty repo at `{org}/{project-slug}`. The org is whichever the consultant picked: consultancy, client, or consultancy-then-transfer.
+The pipeline calls GitHub via the Bytetalent App install token (R1-3) to create a new empty repo at `{org}/{project-slug}`. The org is whichever the consultant picked: agency, client, or agency-then-transfer.
 
 #### 6b. Pull base files (scaffold)
 
@@ -173,7 +173,7 @@ When the consultant marks the project complete:
 
 1. Pipeline generates a bundle index — client repo URL + Pencil files + brand kit + PRD + architecture PDFs + dashboard URL + deployed URL
 2. Email index to the client
-3. Auto-revoke consultancy GitHub access if topology was "consultancy-then-transfer"
+3. Auto-revoke agency GitHub access if topology was "agency-then-transfer"
 4. R1-6 coherence checks run:
    - Brand kit colors actually appear in the design's exported tokens
    - PRD entities exist in the Drizzle schema
@@ -298,11 +298,48 @@ In `bytetalent/bt-ai-web` — the pipeline app. It has access to:
 
 It doesn't live in the bases or templates. Those are pure scaffolding inputs.
 
-### "What about consultancies that aren't Bytetalent?"
+### "What about agencies that aren't Bytetalent?"
 
-Strategic decision #1: Bytetalent's app is the *product*. Any consulting company is a potential customer. Bytetalent itself is just one consultancy using the product. The pipeline supports multi-tenancy — `accounts` = consultancies, `clients` = each consultancy's clients, `projects` = engagements.
+Strategic decision #1: Bytetalent's app is the *product*. Any consulting firm or agency is a potential customer. Bytetalent itself is just one agency using the product. The pipeline supports multi-tenancy — `accounts` with `accountType = "agency"` are the pipeline operators, `clients` = each agency's clients, `projects` = engagements.
 
-**Account-scoped base customization** (consultancies forking the base for their own conventions) is **deferred to backlog post-R6**. R1 ships with Bytetalent's bases as the only option.
+**Account-scoped base customization** (agencies forking the base for their own conventions) is **deferred to backlog post-R6**. R1 ships with Bytetalent's bases as the only option.
+
+---
+
+## 9. Agency vs. client roles in the pipeline
+
+The pipeline has two distinct user types with different access patterns. Understanding the boundary prevents accidentally exposing agency-internal data to client users.
+
+### Agency role in the pipeline
+
+Accounts with `accountType = "agency"` are the **operators** of the pipeline. They:
+
+- Create and configure projects (setup wizard)
+- Author and iterate on every phase: idea, PRD, brand kit, design, architecture, code
+- Own credentials (Anthropic key, GitHub, Vercel, etc.)
+- Publish approved deliverables to the client portal
+- Review and merge the generated PRs in the client GitHub repo
+
+Inside an agency account, `consultant` is the default member role for the people doing the work. `owner` holds billing and admin authority. `viewer` is for read-only observers (partners, auditors).
+
+### Client role in the pipeline
+
+Accounts with `accountType = "client"` are the **recipients** of the pipeline output. They:
+
+- View published deliverables via the client portal (`/portal/[token]`)
+- Approve or request changes on deliverables
+- Cannot see the pipeline's internal phase work (idea reviews, PRD iterations, prompt history)
+- Cannot create projects or access any agency-level route
+
+Inside a client account, `product-owner` is the key role for whoever approves scope and deliverables. `reviewer` is used when approval is delegated to a specific person per phase.
+
+### Authorization boundary
+
+The pipeline enforces this boundary at the API layer:
+
+- All `/api/projects/...` pipeline routes require `accountType = "agency"` (the project's `accountId` must belong to an agency account, not a client account).
+- The `/portal/[token]` route is intentionally outside the dashboard auth shell — it accepts a project portal token and shows only what has been published.
+- Client accounts may only reach pipeline data through the portal, not through any `/api/projects` or `/api/phases` route.
 
 ---
 
@@ -310,5 +347,6 @@ Strategic decision #1: Bytetalent's app is the *product*. Any consulting company
 
 - [`guide-base-development.md`](guide-base-development.md) — how a base is structured + versioned
 - [`guide-template-development.md`](guide-template-development.md) — how a template is paired + applied
+- [`guide-arch.md`](guide-arch.md) — org model section (§9) — account types + role taxonomy
 - [`guide-arch.md`](guide-arch.md) — universal access-path discipline that all the above inherit
 - [`guide-pencil.md`](guide-pencil.md) — Pencil MCP for `.pen` design files
