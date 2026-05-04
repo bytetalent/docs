@@ -114,10 +114,17 @@ A project should have at least these views:
 ### `tasks` — primary working table
 
 - **View type**: Table
-- **Filter**: `-status:Done` (excludes done items at top level; group below brings hierarchy through)
-- **Group by**: Parent issue (so children cluster under their epic)
-- **Sort**: Release ascending, then Priority (now → later)
-- **Visible columns**: Title, Release, Priority, Status, Labels, Parent issue, Estimate
+- **Filter**: `-status:Done` (excludes done items at every level)
+- **Group by**: **Release** (gives natural release-bucket chunking at the top level)
+- **Sort**: Release ascending (within group, Priority now → later if a secondary sort is supported)
+- **Show sub-issues / Hierarchy**: **ON** (epic → sub-issue nesting renders inside each release group)
+- **Visible columns**: Title, Priority, Status, Sub-issues progress, Labels, Assignees, Linked pull requests
+
+Why this combination works:
+- Release as primary grouping is the natural top-level unit ("what's R1.6 vs R1.7")
+- Hierarchy-ON inside each release group preserves epic → sub-issue context
+- The `-status:Done` filter cleanly hides done items at all levels (since each level operates within its release group, the filter applies sensibly without the cross-hierarchy leak that occurs in flat / parent-grouped views)
+- Sub-issues progress column gives at-a-glance epic completion %
 
 ### `boards` — kanban by status
 
