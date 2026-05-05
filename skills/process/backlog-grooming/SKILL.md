@@ -70,13 +70,13 @@ For epic bodies, also include a **Children** section listing planned sub-issues 
 
 Implementer-level detail (specific files, function signatures, exact migrations) goes in the worker dispatch prompt, NOT in the issue body. The body stays reader-first; the dispatch brief can be expansive.
 
-## Ticket completeness assessment — eight dimensions
+## Ticket completeness assessment — nine dimensions
 
-Before dispatching a worker on a ticket — or during a sweep grooming pass — assess each ticket against eight dimensions. **A ticket failing on any dimension is not ready** and either needs editing, gating, or demoting.
+Before dispatching a worker on a ticket — or during a sweep grooming pass — assess each ticket against nine dimensions. **A ticket failing on any dimension is not ready** and either needs editing, gating, or demoting.
 
 This is the heart of grooming. Every other section in this skill (fields, body, hierarchy, hygiene routines) feeds into these dimensions. If you only have time for one thing during grooming, run this assessment.
 
-### The eight dimensions
+### The nine dimensions
 
 **1. Title convention** — matches v2 format `<area> : <feature> : <description>` (see `board-operating-model/SKILL.md`). No `[prefix]`, no R-numbers, no parent refs in title. The first field matches an `area:*` label.
 
@@ -115,6 +115,15 @@ If any apply: `needs:human-only` label + assign `@anthony-mansfield`. Otherwise:
 - No ambiguous "we'll figure it out" wording
 - Implementer-level detail (file paths, function names, schemas) goes in the dispatch brief, not the body — but the body should still be unambiguous about *what* to build
 
+**9. Body readability** — does the body actually render?
+- **Real newlines, not literal `\n` strings.** Bodies authored via `gh issue create --body "..."` with escaped `\n` show the escape literally on github.com and become a wall of unreadable text. Always pass bodies via `--body-file path/to/body.md` or a heredoc (`--body "$(cat <<'EOF' ... EOF)"`) — never inline `\n`-escaped strings.
+- Headings, tables, code fences render properly when viewed on github.com. Spot-check by opening the issue in the browser, or via `gh issue view <n> --web`.
+- No copy-paste artifacts: smart quotes that break inline code, mojibake from bad encoding, stray backslash escapes, broken column alignment in tables.
+- Scannable structure: section headings (`## Why`, `## What`) make the shape obvious. No walls of unbroken text spanning more than ~5 lines without a heading or list break.
+- Length-appropriate: short, sharp body for an XS/S ticket; longer body OK for an epic, but still scannable. Implementer-level detail goes in the dispatch brief, not the body (revisit dimension 8).
+
+If a body is unreadable, **fix it on sight** — the cost of editing is far lower than the cost of the next reader (human or agent) bouncing off it.
+
 ### Failure modes & remediation
 
 When a ticket fails an assessment dimension:
@@ -131,12 +140,14 @@ When a ticket fails an assessment dimension:
 | Scope is XL | Break into sub-issues; promote this one to epic (add `## Children` section to body). |
 | Ambiguous done-when | Comment requesting clarification; demote Priority to `later` until clarified. Don't dispatch. |
 | Stale label (`lane:claude`, `epic`-as-label) | Strip on sight when editing for any other reason. |
+| Body has literal `\n` (escape strings instead of newlines) | Fix on sight: `gh issue edit <n> --body-file fixed.md`. Reads as a wall of text on github.com — every reader bounces off it. |
+| Body fails to render (broken tables, unfenced code, mojibake) | Fix on sight. Spot-check the rendered view via `gh issue view <n> --web` after editing. |
 
 ### Two grooming modes
 
-**Sweep mode** — periodic pass across all open tickets in a release (or the whole board). Use the eight dimensions as a checklist; produce a punch list of tickets needing edits, then bulk-fix. Best run when starting a new release, after a wave lands, or when the board has accumulated drift.
+**Sweep mode** — periodic pass across all open tickets in a release (or the whole board). Use the nine dimensions as a checklist; produce a punch list of tickets needing edits, then bulk-fix. Best run when starting a new release, after a wave lands, or when the board has accumulated drift.
 
-**Pre-dispatch mode** — single-ticket assessment before sending a worker. Run through the eight dimensions for *this one ticket*; if any fail, fix in place or escalate to human before dispatching. Saves the cost of a worker getting stuck mid-flight on missing context, ambiguous done-when, or a hidden human dependency.
+**Pre-dispatch mode** — single-ticket assessment before sending a worker. Run through the nine dimensions for *this one ticket*; if any fail, fix in place or escalate to human before dispatching. Saves the cost of a worker getting stuck mid-flight on missing context, ambiguous done-when, or a hidden human dependency.
 
 The same dimensions apply in both modes; the cadence and breadth differ.
 
@@ -151,9 +162,10 @@ The same dimensions apply in both modes; the cadence and breadth differ.
 [ ] 6. Design — gated on design ticket if visual work
 [ ] 7. Scope — fits one PR, or epic'd if not
 [ ] 8. Dispatch-ready — testable done-when, complete refs, no ambiguity
+[ ] 9. Readable — real newlines (no literal `\n`), tables/headings render, scannable
 ```
 
-If all eight pass → ready. Any fail → fix or escalate before dispatch.
+If all nine pass → ready. Any fail → fix or escalate before dispatch.
 
 ## PR title conventions
 
