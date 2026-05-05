@@ -13,4 +13,5 @@ Coding conventions for TypeScript, React components, forms, tables, error handli
 - [server-actions-auth](server-actions-auth/SKILL.md) — Zod validation before data touch, auth guard sequence, authz inside the action, security headers.
 - [table-patterns](table-patterns/SKILL.md) — Server-side pagination/sorting/filtering, table component hierarchy, FilterActionBar, cell templates, and useEntityList hook conventions.
 - [tailwind-and-styling](tailwind-and-styling/SKILL.md) — cn() for class composition, cva for variants, CSS variables only in dynamic styles, @utility for custom utilities.
+- [theme-hook](theme-hook/SKILL.md) — Single-source useTheme hook pattern — three-priority reconciliation (localStorage → user metadata → system preference) and the rule against parallel theme state.
 - [typescript-strict](typescript-strict/SKILL.md) — Strict TS — no any, no implicit returns, exhaustive switch, Drizzle-inferred types only.
