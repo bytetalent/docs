@@ -70,6 +70,40 @@ For epic bodies, also include a **Children** section listing planned sub-issues 
 
 Implementer-level detail (specific files, function signatures, exact migrations) goes in the worker dispatch prompt, NOT in the issue body. The body stays reader-first; the dispatch brief can be expansive.
 
+#### Bug ticket variant
+
+Bug tickets keep the canonical sections (`## Why`, `## Done when`, `## Refs`) but **replace `## What` with two diagnostic sections** so the next reader can reproduce and start investigating without backchannel:
+
+```markdown
+## Why
+<1-2 sentences — what regression or defect was hit, where, and what blocks because of it>
+
+## Repro
+1. <step>
+2. <step>
+3. **Expected:** <what should happen>
+4. **Actual:** <what does happen>
+
+Concrete example: <URL / project / data point that triggered it>
+
+## Investigation hints
+- <likely-cause hypothesis tied to a file/path>
+- <2nd hypothesis>
+- <pointer to relevant route/component to start from>
+
+## Done when
+- [ ] Repro path no longer reproduces
+- [ ] <root-cause-specific criterion>
+- [ ] Regression test covers the failure mode
+
+## Refs
+- <walkthrough doc / log / related issue>
+```
+
+Why split this out: a bug ticket without a repro is a guess; a bug ticket without investigation hints makes the next picker-up redo discovery the reporter already did. Both sections are cheap to write at filing time and expensive to reconstruct later.
+
+For non-bug tickets (features, refactors, design, docs), keep `## What` as in the canonical structure — the diagnostic sections don't apply.
+
 ## Ticket completeness assessment — nine dimensions
 
 Before dispatching a worker on a ticket — or during a sweep grooming pass — assess each ticket against nine dimensions. **A ticket failing on any dimension is not ready** and either needs editing, gating, or demoting.
@@ -156,7 +190,7 @@ The same dimensions apply in both modes; the cadence and breadth differ.
 ```
 [ ] 1. Title — `<area> : <feature> : <description>` v2, no prefixes
 [ ] 2. Fields — Release, Priority, Status, area:* label, assignee set
-[ ] 3. Body — Why, What, Done when, Refs (epic: + Children)
+[ ] 3. Body — Why, What, Done when, Refs (epic: + Children · bug: Repro + Investigation hints replace What)
 [ ] 4. Human deps — needs:human-only if applicable
 [ ] 5. Relationships — parent linked, blockers declared, refs cross-linked
 [ ] 6. Design — gated on design ticket if visual work
