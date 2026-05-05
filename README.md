@@ -96,7 +96,9 @@ Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring 
 
 - [`skills/standardized-access-paths`](skills/standardized-access-paths/SKILL.md) — one canonical path per concern; Drizzle for DB, `resolveAccount` for auth, no parallel implementations
 - [`skills/connections-framework`](skills/connections-framework/SKILL.md) — two-level credential model, three provider variants, Vault-only secret storage, `withSecrets()` boundary
+- [`skills/connections/github-app-vs-oauth`](skills/connections/github-app-vs-oauth/SKILL.md) — GitHub App (not OAuth App) for repo access: bot identity, per-repo scoping, short-lived tokens, Marketplace eligibility
 - [`skills/proxy-egress`](skills/proxy-egress/SKILL.md) — all LLM + provider calls route through POST /api/proxy; direct provider fetch never allowed outside adapters
+- [`skills/architecture/realtime-supabase`](skills/architecture/realtime-supabase/SKILL.md) — Supabase Realtime Postgres change listeners for live updates; no polling, no Pusher/Ably
 - [`skills/infra-service-defaults`](skills/infra-service-defaults/SKILL.md) — use the already-in-stack service (Vercel+Supabase+Upstash) before adding a fourth
 - [`skills/clerk-auth`](skills/clerk-auth/SKILL.md) — server `auth()`, middleware, JWT template for Supabase RLS, social login
 - [`skills/scope-guard`](skills/scope-guard/SKILL.md) — hard-cap on must-have feature count; surfaces silent scope creep aggressively
@@ -105,6 +107,8 @@ Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring 
 **API patterns:**
 
 - [`skills/api-route-conventions`](skills/api-route-conventions/SKILL.md) — REST-only routes, list vs. detail file layout, auth guard order, CORS rules, health-check endpoint
+- [`skills/api/api-cors-policy`](skills/api/api-cors-policy/SKILL.md) — specific origin (never `*`) for credentialed requests; restrict allowed methods; set `Access-Control-Max-Age`
+- [`skills/api/api-healthcheck`](skills/api/api-healthcheck/SKILL.md) — `/api/healthz` with `SELECT 1` DB probe; returns `{status:"ok"}` or 503; no auth, no data exposure
 - [`skills/api-input-validation`](skills/api-input-validation/SKILL.md) — Zod-based validation, centralize schemas in `api-schemas.ts`, canonical error codes
 - [`skills/api-pagination-and-filtering`](skills/api-pagination-and-filtering/SKILL.md) — cursor-based pagination, default limit 25/max 100, flat sort/filter query params
 - [`skills/api-sse-streaming`](skills/api-sse-streaming/SKILL.md) — `Response` + `TransformStream` for SSE; normalized event shape across providers
