@@ -94,18 +94,9 @@ Sequential, each producing an approved deliverable that feeds the next:
 
 Each phase output is stored as a `project_deliverables` snapshot — frozen at approval time so later edits to the source kit/PRD don't change historical deliverables.
 
-### Phase 5.5 — Provisioning (R1-3.6, parallel track)
+### Phase 5.5 — Provisioning
 
-Consultant authorizes the pipeline to provision per-project infrastructure:
-
-- Vercel project (or Cloudflare Pages, Azure, EAS, depending on stack)
-- Supabase project + migrations + RLS policies + storage buckets
-- Clerk app config (webhooks, OAuth providers)
-- Stripe products + prices + webhook endpoint (if billing)
-- Resend domain + API key
-- DNS records
-
-This runs **in parallel with code-gen** — they only converge at first deploy. The consultant's *active interaction time* is short; wall-clock includes manual walls (KYC, DNS verification) the pipeline guides through.
+Infrastructure provisioning (Vercel, Supabase, Clerk, Stripe, Resend, DNS) runs in parallel with code-gen (R1-3.6). The consultant's active interaction time is short; wall-clock includes manual steps (KYC, DNS verification) that the pipeline guides through. Provider-specific provisioning steps are documented in `bt-ai-web/docs/product/pipeline-patterns.md`.
 
 ### Phase 6 — Code generation (R1-4)
 
@@ -306,47 +297,11 @@ Strategic decision #1: Bytetalent's app is the *product*. Any consulting firm or
 
 ---
 
-## 9. Agency vs. client roles in the pipeline
-
-The pipeline has two distinct user types with different access patterns. Understanding the boundary prevents accidentally exposing agency-internal data to client users.
-
-### Agency role in the pipeline
-
-Accounts with `accountType = "agency"` are the **operators** of the pipeline. They:
-
-- Create and configure projects (setup wizard)
-- Author and iterate on every phase: idea, PRD, brand kit, design, architecture, code
-- Own credentials (Anthropic key, GitHub, Vercel, etc.)
-- Publish approved deliverables to the client portal
-- Review and merge the generated PRs in the client GitHub repo
-
-Inside an agency account, `consultant` is the default member role for the people doing the work. `owner` holds billing and admin authority. `viewer` is for read-only observers (partners, auditors).
-
-### Client role in the pipeline
-
-Accounts with `accountType = "client"` are the **recipients** of the pipeline output. They:
-
-- View published deliverables via the client portal (`/portal/[token]`)
-- Approve or request changes on deliverables
-- Cannot see the pipeline's internal phase work (idea reviews, PRD iterations, prompt history)
-- Cannot create projects or access any agency-level route
-
-Inside a client account, `product-owner` is the key role for whoever approves scope and deliverables. `reviewer` is used when approval is delegated to a specific person per phase.
-
-### Authorization boundary
-
-The pipeline enforces this boundary at the API layer:
-
-- All `/api/projects/...` pipeline routes require `accountType = "agency"` (the project's `accountId` must belong to an agency account, not a client account).
-- The `/portal/[token]` route is intentionally outside the dashboard auth shell — it accepts a project portal token and shows only what has been published.
-- Client accounts may only reach pipeline data through the portal, not through any `/api/projects` or `/api/phases` route.
-
----
-
 ## Related
 
 - [`guide-base-development.md`](guide-base-development.md) — how a base is structured + versioned
 - [`guide-template-development.md`](guide-template-development.md) — how a template is paired + applied
-- [`guide-arch.md`](guide-arch.md) — org model section (§9) — account types + role taxonomy
 - [`guide-arch.md`](guide-arch.md) — universal access-path discipline that all the above inherit
 - [`guide-pencil.md`](guide-pencil.md) — Pencil MCP for `.pen` design files
+- `bt-ai-web/CLAUDE.md` — agency/client/platform account types + role taxonomy
+- `bt-ai-web/docs/product/pipeline-patterns.md` — provisioning targets, pipeline UX patterns
