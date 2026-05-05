@@ -1,0 +1,265 @@
+#!/usr/bin/env node
+// Self-review checklist generator — loads applicable skills and emits a structured review checklist.
+// Usage: bin/self-review [--skills-dir <path>]
+// Docs: bytetalent/docs/README.md#self-review
+
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+// ── Stack detection ────────────────────────────────────────────────────────
+
+function detectStacks(cwd) {
+  const stacks = [];
+  if (fs.existsSync(path.join(cwd, "next.config.js")) || fs.existsSync(path.join(cwd, "next.config.ts")) || fs.existsSync(path.join(cwd, "next.config.mjs"))) {
+    stacks.push("nextjs", "nextjs-clerk-supabase");
+  }
+  if (fs.existsSync(path.join(cwd, "astro.config.mjs")) || fs.existsSync(path.join(cwd, "astro.config.ts"))) {
+    stacks.push("astro");
+  }
+  if (fs.existsSync(path.join(cwd, "wrangler.toml")) || fs.existsSync(path.join(cwd, "wrangler.json"))) {
+    stacks.push("cloudflare");
+  }
+  if (fs.existsSync(path.join(cwd, "app.json")) && fs.existsSync(path.join(cwd, "app/(tabs)"))) {
+    stacks.push("expo");
+  }
+  return stacks;
+}
+
+// ── Frontmatter parsing ────────────────────────────────────────────────────
+
+function parseFrontmatter(content) {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return {};
+  const meta = {};
+  for (const line of match[1].split(/\r?\n/)) {
+    const colon = line.indexOf(":");
+    if (colon === -1) continue;
+    const key = line.slice(0, colon).trim();
+    let value = line.slice(colon + 1).trim();
+    if (value.startsWith("[") && value.endsWith("]")) {
+      value = value
+        .slice(1, -1)
+        .split(",")
+        .map((v) => v.trim().replace(/^['"]|['"]$/g, ""));
+    }
+    meta[key] = value;
+  }
+  return meta;
+}
+
+function stripFrontmatter(content) {
+  return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
+}
+
+// ── Skill filtering ────────────────────────────────────────────────────────
+
+function isApplicable(meta, detectedStacks) {
+  const stacks = Array.isArray(meta.applicable_stacks) ? meta.applicable_stacks : [meta.applicable_stacks || "universal"];
+  // Universal skills always apply
+  if (stacks.includes("universal")) return true;
+  // Stack-specific: apply if any detected stack matches
+  return stacks.some((s) => detectedStacks.includes(s));
+}
+
+// ── Checklist extraction ───────────────────────────────────────────────────
+
+// Sections whose content we lift as checklist items
+const CHECKLIST_SECTIONS = [
+  "when to apply",
+  "rules",
+  "core rules",
+  "the pattern",
+  "anti-patterns",
+  "how to apply",
+  "canonical baseline",
+  "setting up a new repo",
+  "decision flow",
+];
+
+function extractChecklistItems(body) {
+  const lines = body.split(/\r?\n/);
+  const items = [];
+  let inSection = false;
+  let inCodeBlock = false;
+
+  for (const line of lines) {
+    // Track code fences — skip their contents
+    if (line.trim().startsWith("```")) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock) continue;
+
+    // Detect section headings
+    const headingMatch = line.match(/^#{1,3}\s+(.+)/);
+    if (headingMatch) {
+      const heading = headingMatch[1].toLowerCase().trim();
+      inSection = CHECKLIST_SECTIONS.some((s) => heading.includes(s));
+      continue;
+    }
+
+    if (!inSection) continue;
+
+    // Lift numbered items (1. ...) and bullet items (- ..., * ...)
+    const bulletMatch = line.match(/^\s*(?:\d+\.|[-*])\s+(.+)/);
+    if (bulletMatch) {
+      const text = bulletMatch[1]
+        .trim()
+        // strip inline code backticks for readability
+        .replace(/`([^`]+)`/g, "$1")
+        // strip bold/italic markers
+        .replace(/\*\*([^*]+)\*\*/g, "$1")
+        .replace(/\*([^*]+)\*/g, "$1");
+      if (text.length > 0) items.push(text);
+    }
+  }
+
+  return items;
+}
+
+// ── Skill loading ──────────────────────────────────────────────────────────
+
+function findSkillFiles(skillsDir) {
+  const results = [];
+  if (!fs.existsSync(skillsDir)) return results;
+
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        walk(path.join(dir, entry.name));
+      } else if (entry.name === "SKILL.md") {
+        results.push(path.join(dir, entry.name));
+      }
+    }
+  }
+  walk(skillsDir);
+  return results.sort();
+}
+
+function loadSkill(filePath, skillsBaseDir) {
+  const content = fs.readFileSync(filePath, "utf8");
+  const meta = parseFrontmatter(content);
+  const body = stripFrontmatter(content);
+  const relPath = path.relative(skillsBaseDir, path.dirname(filePath));
+  return { path: relPath, meta, body, items: extractChecklistItems(body) };
+}
+
+// ── Output formatting ──────────────────────────────────────────────────────
+
+function formatChecklist(skills, targetCwd) {
+  const lines = [];
+  lines.push("# Self-review checklist");
+  lines.push("");
+  lines.push(`Generated: ${new Date().toISOString()}`);
+  lines.push(`Target: ${targetCwd}`);
+  lines.push(`Skills loaded: ${skills.length}`);
+  lines.push("");
+
+  for (const skill of skills) {
+    const displayName = skill.meta.name || skill.path;
+    lines.push(`## ▸ skills/${skill.path}`);
+    if (skill.meta.description) {
+      lines.push(`> ${skill.meta.description}`);
+    }
+    lines.push("");
+    if (skill.items.length === 0) {
+      lines.push("_(no checklist items extracted — review skill manually)_");
+    } else {
+      for (const item of skill.items) {
+        lines.push(`- [ ] ${item}`);
+      }
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+// ── Safe write ─────────────────────────────────────────────────────────────
+
+function safeWriteFile(filePath, content, cwd) {
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(cwd + path.sep) && resolved !== cwd) {
+    throw new Error(`Refusing to write outside cwd: ${resolved}`);
+  }
+  const dir = path.dirname(resolved);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(resolved, content, "utf8");
+  return resolved;
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────
+
+function main() {
+  const cwd = process.cwd();
+
+  // Parse --skills-dir override
+  const args = process.argv.slice(2);
+  let explicitSkillsDir = null;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--skills-dir" && args[i + 1]) {
+      explicitSkillsDir = args[i + 1];
+      i++;
+    }
+  }
+
+  // Locate skills directory
+  // Priority: --skills-dir flag > local skills/ > bytetalent/docs skills/ (sibling path)
+  let skillsDir;
+  let skillsLabel;
+  if (explicitSkillsDir) {
+    skillsDir = path.resolve(explicitSkillsDir);
+    skillsLabel = explicitSkillsDir;
+  } else if (fs.existsSync(path.join(cwd, "skills"))) {
+    skillsDir = path.join(cwd, "skills");
+    skillsLabel = "skills/ (local)";
+  } else {
+    // Try sibling bytetalent/docs repo
+    const candidates = [
+      path.resolve(cwd, "../../Bytetalent/docs/skills"),
+      path.resolve(cwd, "../docs/skills"),
+      path.resolve(cwd, "../../docs/skills"),
+    ];
+    skillsDir = candidates.find((c) => fs.existsSync(c)) || null;
+    skillsLabel = skillsDir ? path.relative(cwd, skillsDir) : null;
+  }
+
+  if (!skillsDir) {
+    process.stderr.write(
+      "bin/self-review: no skills directory found.\n" +
+        "Pass --skills-dir <path> or run from a repo with a skills/ directory.\n"
+    );
+    process.exit(1);
+  }
+
+  process.stdout.write(`Loading skills from: ${skillsLabel || skillsDir}\n`);
+
+  const detectedStacks = detectStacks(cwd);
+  if (detectedStacks.length > 0) {
+    process.stdout.write(`Detected stacks: ${detectedStacks.join(", ")}\n`);
+  } else {
+    process.stdout.write(`Detected stacks: (none — universal-only skills will apply)\n`);
+  }
+
+  const skillFiles = findSkillFiles(skillsDir);
+  const applicable = [];
+  for (const filePath of skillFiles) {
+    const skill = loadSkill(filePath, skillsDir);
+    if (isApplicable(skill.meta, detectedStacks)) {
+      applicable.push(skill);
+    }
+  }
+
+  const totalItems = applicable.reduce((sum, s) => sum + s.items.length, 0);
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const outputPath = path.join(cwd, ".tmp", `self-review-${timestamp}.md`);
+
+  const output = formatChecklist(applicable, cwd);
+  safeWriteFile(outputPath, output, cwd);
+
+  process.stdout.write(
+    `${totalItems} items across ${applicable.length} skills written to .tmp/self-review-${timestamp}.md\n`
+  );
+}
+
+main();
