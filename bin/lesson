@@ -1,0 +1,305 @@
+#!/usr/bin/env node
+// Lesson-capture protocol — implements the lessons-learned-discipline decision flow.
+// Usage: bin/lesson
+// Docs: bytetalent/docs/README.md#lesson-capture
+
+import * as readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+const rl = readline.createInterface({ input, output });
+
+function ask(question) {
+  return rl.question(question);
+}
+
+function menu(prompt, choices) {
+  const lines = [prompt, ""];
+  choices.forEach((c, i) => lines.push(`  ${i + 1}) ${c}`));
+  lines.push("");
+  process.stdout.write(lines.join("\n"));
+  return rl.question("Choice: ").then((raw) => {
+    const n = parseInt(raw.trim(), 10);
+    if (n >= 1 && n <= choices.length) return n - 1;
+    process.stdout.write("Invalid choice — try again.\n");
+    return menu(prompt, choices);
+  });
+}
+
+function safeWriteFile(filePath, content) {
+  const cwd = process.cwd();
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(cwd + path.sep) && resolved !== cwd) {
+    throw new Error(`Refusing to write outside cwd: ${resolved}`);
+  }
+  const dir = path.dirname(resolved);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  if (fs.existsSync(resolved)) {
+    throw new Error(`File already exists: ${resolved}\nMove it first or choose a different path.`);
+  }
+  fs.writeFileSync(resolved, content, "utf8");
+  return resolved;
+}
+
+function safeAppendFile(filePath, content) {
+  const cwd = process.cwd();
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(cwd + path.sep) && resolved !== cwd) {
+    throw new Error(`Refusing to write outside cwd: ${resolved}`);
+  }
+  if (!fs.existsSync(resolved)) {
+    throw new Error(`File not found: ${resolved}`);
+  }
+  fs.appendFileSync(resolved, content, "utf8");
+  return resolved;
+}
+
+// ── Templates ──────────────────────────────────────────────────────────────
+
+function skillTemplate(slug, category, description) {
+  return `---
+name: ${slug}
+description: ${description}
+category: ${category}
+applicable_phases: [all]
+applicable_stacks: [universal]
+version: 1
+---
+
+<!-- TODO: describe the problem this skill prevents -->
+
+## Context
+
+<!-- When does this pattern apply? What goes wrong without it? -->
+
+## The pattern
+
+<!-- The rule(s) an agent should follow. Keep it actionable. -->
+
+## Example
+
+\`\`\`
+<!-- Concrete before/after or code snippet -->
+\`\`\`
+
+## See also
+
+<!-- Links to related skills or guides -->
+`;
+}
+
+function scriptTemplate(scriptName, description) {
+  return `#!/usr/bin/env node
+// ${description}
+// Usage: node scripts/${scriptName}
+
+import * as fs from "node:fs";
+
+// TODO: implement the tooling check
+
+console.log("${scriptName}: check passed");
+`;
+}
+
+function memoryEntryText(topic, body) {
+  return `---
+name: ${topic}
+description: TODO — one-line description for the memory index
+type: feedback
+---
+
+${body}
+
+**Why:** TODO — explain the incident or reason.
+**How to apply:** TODO — when and where this guidance applies.
+`;
+}
+
+// ── Decision flow ──────────────────────────────────────────────────────────
+
+async function handleMechanicalCheck() {
+  process.stdout.write("\n--- Mechanical tooling check ---\n\n");
+  const desc = await ask('Describe what the check should catch (one line): ');
+  const scriptName = await ask('Script filename (e.g. "check-journal-monotonic.mjs"): ');
+
+  const filePath = `scripts/${scriptName}`;
+  const content = scriptTemplate(scriptName, desc.trim());
+
+  const written = safeWriteFile(filePath, content);
+  process.stdout.write(`\nWrote scaffold: ${written}\n`);
+  process.stdout.write(`\nNext steps:\n`);
+  process.stdout.write(`  1. Implement the check in scripts/${scriptName}\n`);
+  process.stdout.write(`  2. Wire it into .github/workflows/ci.yml (or equivalent)\n`);
+  process.stdout.write(`  3. Add a callout line in the relevant SKILL.md pointing at the script\n`);
+  process.stdout.write(`  4. Commit + open PR\n`);
+}
+
+async function handleNewSkill() {
+  process.stdout.write("\n--- New universal skill ---\n\n");
+  const category = await ask('Skill category (e.g. "api", "process", "db", "design"): ');
+  const slug = await ask('Skill slug (kebab-case, e.g. "pagination-guard"): ');
+  const description = await ask('One-line description for the skill frontmatter: ');
+
+  const filePath = `skills/${category.trim()}/${slug.trim()}/SKILL.md`;
+  const content = skillTemplate(slug.trim(), category.trim(), description.trim());
+
+  const written = safeWriteFile(filePath, content);
+  process.stdout.write(`\nWrote template: ${written}\n`);
+  process.stdout.write(`\nNext steps:\n`);
+  process.stdout.write(`  1. Fill in the pattern, context, and example sections\n`);
+  process.stdout.write(`  2. Add an entry to bytetalent/docs/README.md Skills index\n`);
+  process.stdout.write(`  3. Commit + open PR to bytetalent/docs (base: main)\n`);
+}
+
+async function handleUpdateSkill() {
+  process.stdout.write("\n--- Update existing skill ---\n\n");
+  const skillPath = await ask('Path to the SKILL.md to update (relative to repo root, e.g. "skills/process/lessons-learned-discipline/SKILL.md"): ');
+  const finding = await ask('What section or rule needs updating? (describe briefly): ');
+
+  process.stdout.write(`\nAction required:\n`);
+  process.stdout.write(`  File: ${skillPath.trim()}\n`);
+  process.stdout.write(`  Update: ${finding.trim()}\n`);
+  process.stdout.write(`\nNext steps:\n`);
+  process.stdout.write(`  1. Edit the skill file and add/revise the relevant section\n`);
+  process.stdout.write(`  2. Commit + open PR to bytetalent/docs (base: main)\n`);
+}
+
+async function handleClaudeMd() {
+  process.stdout.write("\n--- CLAUDE.md addition ---\n\n");
+  const repo = await ask('Which repo\'s CLAUDE.md? (e.g. "app-flow-ai-web", "nextjs-clerk-supabase"): ');
+  const section = await ask('New section heading (e.g. "## Worktree safety"): ');
+  const body = await ask('Draft the rule (one sentence; you can expand when editing): ');
+
+  const marker = `\n\n<!-- TODO: lesson-capture addition -->\n${section.trim()}\n\n${body.trim()}\n`;
+
+  // Try to append to local CLAUDE.md if in the target repo, otherwise print
+  const claudeMdPath = `CLAUDE.md`;
+  if (fs.existsSync(path.resolve(claudeMdPath))) {
+    const confirm = await ask(`Found CLAUDE.md here — append the TODO marker? (y/n): `);
+    if (confirm.trim().toLowerCase() === "y") {
+      safeAppendFile(claudeMdPath, marker);
+      process.stdout.write(`\nAppended TODO marker to CLAUDE.md.\n`);
+    } else {
+      process.stdout.write(`\nSkipped. Marker to add manually:\n${marker}\n`);
+    }
+  } else {
+    process.stdout.write(`\nNo CLAUDE.md found here. Copy this into ${repo}'s CLAUDE.md:\n${marker}\n`);
+  }
+
+  process.stdout.write(`\nNext steps:\n`);
+  process.stdout.write(`  1. Refine the section content in the target CLAUDE.md\n`);
+  process.stdout.write(`  2. Commit + open PR to ${repo.trim()} (base: dev or main per that repo's convention)\n`);
+}
+
+async function handleMemoryEntry() {
+  process.stdout.write("\n--- Personal memory entry ---\n\n");
+  const topic = await ask('Topic slug (e.g. "feedback_worktree_safety"): ');
+  const body = await ask('Draft the rule/observation (one sentence to start): ');
+
+  const content = memoryEntryText(topic.trim(), body.trim());
+
+  process.stdout.write(`\nMemory entry to write to your ~/.claude/memory/ directory:\n`);
+  process.stdout.write(`\n--- BEGIN: ${topic.trim()}.md ---\n`);
+  process.stdout.write(content);
+  process.stdout.write(`--- END ---\n`);
+  process.stdout.write(`\nNext steps:\n`);
+  process.stdout.write(`  1. Write the above to ~/.claude/memory/${topic.trim()}.md\n`);
+  process.stdout.write(`  2. Add a one-line pointer to ~/.claude/memory/MEMORY.md\n`);
+  process.stdout.write(`  3. No PR needed — memory is local to your agent environment\n`);
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────
+
+async function main() {
+  process.stdout.write("bin/lesson — lesson-capture protocol\n");
+  process.stdout.write("=====================================\n\n");
+  process.stdout.write("After a debug session or incident, this script helps you land the\n");
+  process.stdout.write("prevention at the right layer so the same bug class can't recur.\n\n");
+
+  // Step 1: Mechanical check?
+  const mechanical = await menu(
+    "Step 1 — Can this be caught mechanically? (CI step, pre-commit hook, lint rule, type guard)",
+    [
+      "Yes — I can write a check that catches this automatically",
+      "No — it requires human/agent judgment to catch",
+    ]
+  );
+
+  if (mechanical === 0) {
+    await handleMechanicalCheck();
+    // Mechanical checks should also update a skill — offer continuation
+    process.stdout.write(`\nMechanical checks should also be documented in the relevant skill.\n`);
+    const also = await ask("Also document in a skill? (y/n): ");
+    if (also.trim().toLowerCase() === "y") {
+      const skillChoice = await menu("Which skill action?", [
+        "Create a new skill",
+        "Update an existing skill",
+      ]);
+      if (skillChoice === 0) await handleNewSkill();
+      else await handleUpdateSkill();
+    }
+    rl.close();
+    return;
+  }
+
+  // Step 2: Universal vs. repo-specific
+  const scope = await menu(
+    "Step 2 — Is this finding universal? (true across all stacks and all Bytetalent projects)",
+    [
+      "Yes — universal rule that applies everywhere",
+      "No — only relevant to one specific repo or stack",
+    ]
+  );
+
+  if (scope === 0) {
+    const skillAction = await menu("Universal finding — what action?", [
+      "Create a new skill in bytetalent/docs",
+      "Update an existing skill in bytetalent/docs",
+    ]);
+    if (skillAction === 0) await handleNewSkill();
+    else await handleUpdateSkill();
+    rl.close();
+    return;
+  }
+
+  // Repo-specific
+  const repoAction = await menu(
+    "Step 2b — Repo-specific finding — what layer?",
+    [
+      "CLAUDE.md addition (repo-specific deviation or context)",
+      "Continue to step 3 — might be about how the user works",
+    ]
+  );
+
+  if (repoAction === 0) {
+    await handleClaudeMd();
+    rl.close();
+    return;
+  }
+
+  // Step 3: About how the user works?
+  const personal = await menu(
+    "Step 3 — Is this about how the user works or communicates? (preference, ritual, communication style)",
+    [
+      "Yes — personal memory entry",
+      "No — one-off; no layer needed",
+    ]
+  );
+
+  if (personal === 0) {
+    await handleMemoryEntry();
+  } else {
+    process.stdout.write("\nNo layer needed. This appears to be a one-off that doesn't warrant\n");
+    process.stdout.write("a mechanical check, skill, CLAUDE.md update, or memory entry.\n");
+    process.stdout.write("If you're unsure, re-run bin/lesson and follow the tree more carefully.\n");
+  }
+
+  rl.close();
+}
+
+main().catch((err) => {
+  process.stderr.write(`\nError: ${err.message}\n`);
+  rl.close();
+  process.exit(1);
+});

@@ -168,6 +168,34 @@ Auto-loaded SKILL.md files for agents working on Bytetalent projects. Authoring 
 - [`skills/paths/optimistic-crud-with-etag`](skills/paths/optimistic-crud-with-etag/SKILL.md) — integer version + `If-Match` header; API returns `ETag`, client sends `If-Match` on PUT, handles 412
 - [`skills/paths/soft-delete-api-resource`](skills/paths/soft-delete-api-resource/SKILL.md) — DELETE sets `deletedAt`/`isArchived`, never hard-deletes; `notDeleted()` helper filters all SELECTs
 
+## CLI tools (`bin/`)
+
+### `bin/lesson` — lesson-capture protocol
+
+An interactive script that walks through the [lessons-learned-discipline](skills/process/lessons-learned-discipline/SKILL.md) decision flow and emits the appropriate scaffold based on your answer.
+
+**Usage** (run from any repo that vendors this script):
+
+```sh
+node bin/lesson
+# or, if executable:
+bin/lesson
+```
+
+**Decision branches:**
+
+| Answer | Output |
+|--------|--------|
+| Mechanical check (CI/pre-commit/lint) | Scaffolds `scripts/<name>.mjs` + prompts to also document in a skill |
+| New universal skill | Writes `skills/<category>/<slug>/SKILL.md` template |
+| Update existing skill | Prints which file to edit and next steps |
+| CLAUDE.md addition | Appends a TODO marker section to the local `CLAUDE.md` (or prints it) |
+| Personal memory entry | Prints structured frontmatter to copy into `~/.claude/memory/` |
+
+The script never writes outside the current working directory.
+
+**Vendoring:** Sub-issue [#466](https://github.com/bytetalent/bt-ai-web/issues/466) tracks copying this script into each base repo via the skill vendoring pipeline. Until then, copy `bin/lesson` manually.
+
 ## License
 
 Proprietary — Bytetalent internal use.
