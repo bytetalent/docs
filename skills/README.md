@@ -10,7 +10,7 @@ Skills are grouped into category subdirectories based on their `category:` front
 |---|---|---|
 | [api](api/README.md) | 6 | REST routes, validation, pagination, streaming, webhooks, concurrency |
 | [architecture](architecture/README.md) | 8 | Next.js, Astro, Cloudflare Workers, Supabase schema, templates |
-| [code](code/README.md) | 10 | TypeScript, components, forms, tables, error handling, styling |
+| [code](code/README.md) | 11 | TypeScript, components, forms, tables, error handling, styling |
 | [connections](connections/README.md) | 1 | Credential management and the connections framework |
 | [db](db/README.md) | 3 | Query patterns, Drizzle migrations, RLS policies |
 | [design](design/README.md) | 5 | Accessibility, design tokens, marketing layouts, Pencil, interactive components |
@@ -18,8 +18,8 @@ Skills are grouped into category subdirectories based on their `category:` front
 | [meta](meta/README.md) | 4 | Planning philosophy and decision heuristics |
 | [paths](paths/) | — | Path alias and import resolution patterns (flat structure, no subdir) |
 | [prd](prd/README.md) | 1 | Product requirements and scope management |
-| [process](process/README.md) | 6 | Backlog, board conventions, branch hygiene, GitHub API, worker dispatch |
-| [security](security/README.md) | 2 | Auth patterns and security review |
+| [process](process/README.md) | 7 | Backlog, board conventions, branch hygiene, GitHub API, worker dispatch |
+| [security](security/README.md) | 3 | Auth patterns, CSP configuration, and security review |
 | [testing](testing/README.md) | 1 | Testing pyramid, Playwright, isolation conventions |
 
 ## Usage
