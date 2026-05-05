@@ -173,4 +173,4 @@ jobs:
           # post results as comment on a tracking issue
 ```
 
-See `branch-hygiene-audit-action` GitHub Action (when authored) for a reference implementation.
+The implementation lives at `.github/workflows/branch-hygiene-audit.yml` in `bytetalent/bt-ai-web`. It runs on the `cron: "0 14 * * 1"` schedule (Mondays 14:00 UTC), is also `workflow_dispatch`-able for manual testing, and posts results as a comment on a `hygiene-tracking`-labeled issue (creating the issue on first run).
