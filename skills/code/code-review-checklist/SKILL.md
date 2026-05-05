@@ -46,6 +46,17 @@ Each PR review covers these categories in order. Security and auth reviews are i
 - Flag `dangerouslySetInnerHTML` — always requires an explicit safe-origin comment or sanitization
 - Flag `href` attributes built from user-controlled strings — validate before use
 
+### Documentation and spec coherence
+
+When a PR ships a doc + a code change in the same commit (a new component with a usage doc, a standard with an enabling API, a design doc with a reference implementation), check the two for consistency. The classes below have all surfaced as real review feedback on customer-facing repos and are expensive to dismiss as "nits" — they signal the agent didn't self-check.
+
+- **Doc-vs-API parity** — every documented use case must be exercisable from the API. If the doc says "use size `lg` for diff/preview content" but the component has no `children`/render slot, either add the slot or remove the use case from the doc. Do NOT ship the doc claim without the API. (Surfaced 2026-05-05 on PR #720.)
+- **Spec-vs-implementation alignment** — describe the actual contract that shipped, not the platonic ideal. If the spec says "panel padding `p-6`" but the component renders `px-6 pt-6` / `px-6 py-4` (asymmetric), the doc should describe what shipped: "px-6 horizontal everywhere; pt-6 title row; py-4 action row". Round-off prose like "24px gutter" is fine when the actual values fit; when they don't, the doc misleads.
+- **Tense for landed vs pending work** — past/present-tense reads as "this is the state today"; future-tense reads as "this is upcoming". Mixing them in a single doc creates ambiguity. When a section references a follow-up ticket, mark it explicitly: "**pending sweep** — #N is the follow-up that walks every modal" — not "swept and applied as part of #N". The latter reads as if it has already happened.
+- **Code samples in docs** — illustrative samples should be valid in the language they're fenced as. ` ```tsx ` blocks should be valid TSX (no `// comments` inside JSX attribute lists; use `{/* */}` instead). ` ```json ` blocks should parse. ` ```sh ` blocks should be runnable as written. A separate CI step that compiles fenced `tsx`/`ts` samples is the mechanical fix; until then, mentally paste the sample into a file and ask "would this compile?" before shipping.
+
+These checks are part of the agent's self-review pass — run them before submitting any PR that touches both `docs/` and source files. Catching them at write-time costs nothing; catching them at review-time costs at least one round-trip and erodes trust in the review process.
+
 ## Version audit (required in every review)
 
 Check all framework and key library versions against current stable releases. Report each in the review table with an upgrade priority:
