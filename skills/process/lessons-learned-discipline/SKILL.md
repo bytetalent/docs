@@ -9,7 +9,7 @@ version: 1
 
 After any debug session that identifies a root cause, finding the fix is only half the job. The other half is making sure the same class of bug cannot recur — and landing that prevention at the right layer. This skill is the decision flow every agent runs before closing a debug ticket.
 
-<!-- TODO: cross-reference bytetalent/docs/guide-agentic-coding.md when it exists (tracked as bytetalent/bt-ai-web#471 R1.6-8g) -->
+<!-- See also: bytetalent/docs/strategy/agent-framework.md — canonical home for agent-framework strategy and the DMAIC loop that governs when to add a prevention layer. -->
 
 ## The layer cake
 
