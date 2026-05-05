@@ -2,7 +2,7 @@
 
 GraphQL efficiency, project board (v2) mechanics, and ticket/epic conventions. Many of these rules emerge from incidents where naive sequential operations exhausted rate limits or silently corrupted board state.
 
-For the board's naming/numbering conventions (WBS dot-decimal titles, Release/Priority/Status fields, label taxonomy), see `bytetalent/docs/skills/board-numbering-conventions/` and `bytetalent/docs/skills/backlog-grooming/`. This doc covers *operating* the board efficiently, not its schema.
+For the board's naming/numbering conventions (WBS dot-decimal titles, Release/Priority/Status fields, label taxonomy), see `bytetalent/docs/skills/process/board-operating-model/` (the authoritative schema reference, renamed from `board-numbering-conventions/` in bytetalent/docs#22) and `bytetalent/docs/skills/process/backlog-grooming/` (v2 — authoritative source for grooming workflow). This doc covers *operating* the board efficiently, not its schema.
 
 ## GraphQL efficiency — bundle, cache, batch
 
