@@ -1,15 +1,17 @@
 ---
-name: GitHub Project Board Title + Structure Conventions
-description: Title format `<area> : <feature> : <description>`. Release as a board field (not in title). Sub-issue links + Blocks/Blocked-by relationships handle dependencies (no dot-decimal prefixes). state:* labels for meta-status. Assignee model for ownership. Updated 2026-05-04.
+name: GitHub Project Board Operating Model
+description: Canonical reference for the project board — release model (main R-numbers + half-step process track), priority + status semantics, title convention v2 (area : feature : description), dependency model (sub-issue links + Blocks/Blocked-by), state labels, two-account assignee model. Codifies operational decisions so they don't drift or get re-litigated.
 category: process
 applicable_phases: [orchestration, planning]
 applicable_stacks: [universal]
-version: 2
+version: 3
 ---
 
-GitHub project boards have orthogonal organizing dimensions: **release**, **dependencies**, **meta-status**, **ownership**, **area**. Each has its own field/mechanism — no encoding multiple dimensions into a single title prefix.
+GitHub project boards have orthogonal organizing dimensions: **release**, **priority**, **status**, **dependencies**, **meta-status**, **ownership**, **area**. Each has its own field/mechanism — no encoding multiple dimensions into a single title prefix.
 
 The previous version of this skill (v1, 2026-05-03) used a WBS dot-decimal title prefix scheme to express order + hierarchy in titles. That convention is **deprecated** as of 2026-05-04. GitHub's native sub-issue links + Blocks/Blocked-by relationships handle hierarchy and dependency without title duplication.
+
+This skill (v3, expanded 2026-05-04 from `board-numbering-conventions`) covers the full board operating model — not just the title format. Read it once when joining a new agent session; reference specific sections during grooming, dispatch, or restructure passes.
 
 ## Title format — `<area> : <feature> : <description>`
 
@@ -93,12 +95,73 @@ Captures **which release bucket** an item ships in. Single source of truth — *
 **Convention for option names**:
 - `R0` — pre-prod hardening
 - `R1.1`, `R1.2`, ..., `R1.9` — current product layers (decimals for sub-releases)
+- `R1.5.5`, `R1.6.5`, `R1.7.5`, `R1.8.5` — half-step releases for the parallel **process / docs / platform-improvement track** (see below)
 - `R2`, `R3`, `R4`, ..., `R19` — future releases
 - `shovel-ready`, `backlog`, `bucket-b` — legacy options for closed items only; new items use `state:*` labels
 
-**Order in option array**: strict numeric ascending. R1.x decimals fit between R0 and R2.
+**Order in option array**: strict numeric ascending. R1.x decimals fit between R0 and R2; half-step `R1.x.5` fits between `R1.x` and `R1.(x+1)`.
 
 **Adding a new option** wipes existing values via the option-ID recreation bug. See `feedback_project_field_options_recreate_ids` in agent memory and the snapshot+restore routine in `github-api-efficiency` skill.
+
+### Half-step releases — parallel process / doc track
+
+Main R-numbers (R1.5, R1.6, R1.7, ...) are the **product feature track** — what's visible to users and demos. Half-step releases (R1.5.5, R1.6.5, R1.7.5, R1.8.5) run **alongside** as a parallel **process / docs / platform-improvement track** that doesn't gate the product cadence.
+
+**What goes in a half-step release**:
+- Skill authoring + skill updates (`area:skills`, `area:process`)
+- Documentation guides + audits (`area:docs`)
+- Board grooming, branch hygiene, lessons-learned codification (`area:process`)
+- Internal tooling, scripts, automation (`area:infra` when the work is internal-facing)
+- Platform extensions to bases / templates that don't ship a user-facing feature (`area:platform`)
+- Any work whose stakeholder is "agent / consultant / future-self" rather than "end user"
+
+**What does NOT go in a half-step release**:
+- Anything on the demo path or release-cut path — that's the main R-number
+- Bugfixes for shipping features — main R-number
+- New user-facing features — main R-number
+
+**Why the split matters**:
+- Lets process/doc work proceed in parallel without competing with feature priority
+- Keeps a clean answer to "what's in R1.6?" — only feature work
+- Gives `area:process` and `area:docs` items their own home so they don't slip when feature releases are tight
+- Half-step releases can bundle freely (10–20 items each) without diluting feature focus
+
+**Sequencing**: a half-step release nominally targets the timing of the next main R-number after it (R1.5.5 closes around the same time as R1.6). But it's **not gated** — items can move between half-step releases as priorities shift, and a half-step release can stay open after its companion R-number ships.
+
+## Priority field (single-select on the project)
+
+Captures **when within a release** an item should run. Three options:
+
+- **`now`** — actively claimable. Top of the queue. Workers picking up the next task scan `now` items first.
+- **`next`** — queued behind `now`. Promoted to `now` when something lands or scope shifts. Default for items added to a release without an immediate slot.
+- **`later`** — release-tagged but explicitly de-prioritized within the release. Won't be picked up unless `now`/`next` is empty or priorities change.
+
+**Stack-ranking within a priority bucket**: the project board UI's vertical order acts as a tie-breaker. Within `now`, items at the top of the column run before items below. Drag-and-drop in the board UI is the canonical way to re-rank — no priority sub-numbers, no title encoding.
+
+**When to use `later`**: the item belongs in this release (it's in scope, the work fits the release's theme), but it's clearly going to slip if the release is tight. Better than re-tagging to a different release because it preserves the scope decision.
+
+**Don't use Priority for sequencing dependencies**: if A blocks B, that's a `Blocks/Blocked-by` relationship (see Hierarchy section), not "A=now, B=next." Priority answers *when* the human/agent should pick it up; dependencies answer *what must finish first*.
+
+## Status field (single-select on the project)
+
+Captures **lifecycle phase** of an item within a release:
+
+- **Todo** — not started. Default for new items. Workers and humans pick from `Todo`.
+- **In Progress** — actively being worked. Set when a worker is dispatched or a human starts the task. Multiple items can be `In Progress` if multiple agents/humans are working in parallel.
+- **Done** — closed. Auto-set when the issue closes. Don't manually set without closing the issue.
+
+**Transitions**:
+- `Todo → In Progress` — when work starts. **Workers flip Status to `In Progress` when they begin** — they don't reassign the issue (assignee is durable categorical ownership; Status is lifecycle).
+- `In Progress → Todo` — when blocked or paused. Add a comment explaining why; consider demoting Priority to `later`.
+- `Anything → Done` — close the issue; Status auto-syncs.
+
+**Status vs `state:*` labels — different concerns**:
+- **Status** = lifecycle of an active item (where in the work-cycle it is)
+- **`state:backlog` / `state:shovel-ready`** = meta-status for items not yet active (pre-prioritization gate)
+
+An item is either active (no `state:*` label, has a Status of Todo/In Progress) or non-active (`state:backlog` or `state:shovel-ready`, Status typically Todo).
+
+**Don't use Status for "this needs review"** — that's a PR concern, not a board concern. The board reflects whether the *work* is in progress, not whether the *PR* is open.
 
 ## Hierarchy + dependencies — use native links, not titles
 
@@ -220,13 +283,21 @@ Note: each child has its own `<area>` field — they vary based on what the work
 - Format: `<n>.<m> : <slug> : <description>` (e.g., `1.1 : base-repos : nextjs : verify builds`)
 - Release in board field (already correct)
 - Letter mapping for legacy: `a→1`, `b→2`, etc.
+- Skill name: `board-numbering-conventions`
 
-**v2 (2026-05-04)** — area-feature-description (this version):
+**v2 (2026-05-04)** — area-feature-description title format:
 - Format: `<area> : <feature> : <description>` (e.g., `platform : base-repos-nextjs : verify builds locally`)
 - Hierarchy moves from title to sub-issue links
 - Order within release: managed by Priority field (`now` / `next` / `later`), not title
 - Release stays in board field
 - One `<area>` label per item, mirroring the title
+- Skill name: still `board-numbering-conventions` (transitional)
+
+**v3 (2026-05-04)** — full operating-model expansion (this version):
+- Skill renamed: `board-numbering-conventions` → `board-operating-model` (the rules cover more than numbering)
+- Half-step release model added (`R1.5.5` / `R1.6.5` / etc. — parallel process/doc track)
+- Priority semantics codified (`now` / `next` / `later` + UI stack-rank)
+- Status semantics codified (`Todo` / `In Progress` / `Done` lifecycle, distinct from `state:*` labels)
 
 The transition: existing items keep their old titles until a re-titling pass; new items use v2 immediately. The re-titling pass is itself a `process : board-grooming : <description>` task.
 
@@ -236,20 +307,30 @@ When **creating** an issue:
 1. Decide which `<area>` matches the work
 2. Pick a `<feature>` key (lowercase-hyphen-case, matches an existing pattern if one exists, or coin a new one)
 3. Write a concise `<description>`
-4. Set Release field
-5. If applicable, set Priority (`now` / `next` / `later`)
-6. Apply `area:<area>` label, plus `cleanup` / `needs:human-only` / `state:*` as relevant
-7. Link as sub-issue of parent epic (if any) via `addSubIssue`
-8. Don't put R-number, parent number, or `[prefix]` in the title
+4. Set Release field — main R-number for product feature work, half-step (R1.x.5) for process/doc/platform work
+5. Set Priority (`now` / `next` / `later`)
+6. Set Status (`Todo` for new items)
+7. Apply `area:<area>` label, plus `cleanup` / `needs:human-only` / `state:*` as relevant
+8. Assign — `@anthony-mansfield` for human-required work, `@bytetalent-ai` for agent-claimable
+9. Link as sub-issue of parent epic (if any) via `addSubIssue`
+10. Don't put R-number, parent number, or `[prefix]` in the title
 
 When **restructuring** (renaming or moving an item):
 - Title: `gh issue edit <n> --title "..."` (REST, separate quota from GraphQL)
-- Release / Priority field: GraphQL `updateProjectV2ItemFieldValue` (batchable via aliases)
+- Release / Priority / Status field: GraphQL `updateProjectV2ItemFieldValue` (batchable via aliases)
 - Labels: `gh issue edit <n> --add-label area:frontend` or `--remove-label state:shovel-ready`
+- Assignee: `gh issue edit <n> --add-assignee bytetalent-ai`
 - Sub-issue link: GraphQL `addSubIssue` mutation
+
+When **picking the next task**:
+1. Filter: `Status: Todo`, `Priority: now`, assignee = your account
+2. Within that set, top-of-column items run first (UI rank)
+3. Flip Status to `In Progress` when starting (don't reassign)
+4. Status auto-flips to `Done` on issue close
 
 ## See also
 
-- `github-api-efficiency/SKILL.md` — bundle, cache, batch — essential for batch re-titling passes
+- `backlog-grooming/SKILL.md` — assessment process for ticket completeness, dependencies, design requirements (uses the rules in this skill)
+- `worker-dispatch-orchestration/SKILL.md` — pre-dispatch research + brief authoring; consumes the `Status` and `Priority` fields documented here
+- `github-api-efficiency/SKILL.md` — bundle, cache, batch — essential for batch re-titling and field-update passes
 - `lessons-learned-discipline/SKILL.md` — where lessons go (this scheme is the resolution of one)
-- `backlog-grooming/SKILL.md` — broader board-grooming protocol; this skill governs the title format used during grooming

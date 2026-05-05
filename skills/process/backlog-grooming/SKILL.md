@@ -1,17 +1,19 @@
 ---
 name: Backlog Grooming
-description: How to organize the GitHub Projects backlog beyond field naming — required fields per ticket, body structure, views, workflows, periodic hygiene, anti-patterns. Pairs with board-numbering-conventions which covers Release/WBS/state:* fields specifically.
+description: How to keep a GitHub Projects v2 backlog organized AND assess each ticket's readiness for dispatch. Covers required fields per ticket, body structure, the eight-dimension completeness assessment (title / fields / body / human deps / relationships / design / sizing / fit-for-dispatch), views, workflows, periodic hygiene, anti-patterns. Pairs with `board-operating-model` which codifies the rules this skill enforces.
 category: process
 applicable_phases: [orchestration, planning, ongoing]
 applicable_stacks: [universal]
-version: 1
+version: 2
 ---
 
-This skill captures the conventions for keeping a GitHub Projects v2 backlog organized, navigable, and actionable across a multi-agent / human team. Pairs with `board-numbering-conventions` which covers the Release field, WBS title prefix, and `state:*` labels in detail; this skill covers everything else.
+This skill captures the conventions for keeping a GitHub Projects v2 backlog organized, navigable, and actionable across a multi-agent / human team — AND for **assessing whether any individual ticket is ready to dispatch**. Pairs with `board-operating-model/SKILL.md` (the rules: title format, fields, labels, hierarchy, assignee model) which this skill enforces.
 
 ## Core principle
 
 **The backlog reflects current intent and recent state, not history.** Every open item should be something we plan to do; every closed item is recorded but invisible by default. A stale-but-open item is worse than no item at all because it lies about what's in flight.
+
+A second principle, closely related: **a ticket that isn't ready to dispatch isn't really on the backlog yet.** It's a draft. Until it passes the eight-dimension assessment below, treat it as a placeholder — not as work that any agent or human can pick up.
 
 ## Hierarchy: epics, sub-issues
 
@@ -23,7 +25,7 @@ Work organizes as a tree:
 
 Sub-issues are linked via the GraphQL `addSubIssue` mutation (with `GraphQL-Features: sub_issues` header), NOT just by reference in the body.
 
-Title prefixes use dot-decimal WBS — see `board-numbering-conventions` skill for the full convention.
+Title format: `<area> : <feature> : <description>` v2 — see `board-operating-model/SKILL.md` for the full convention. The previous WBS dot-decimal title prefix scheme is **deprecated** as of 2026-05-04.
 
 ### When to spawn a new epic vs add to an existing one
 
@@ -37,14 +39,14 @@ Every ticket on the project board has:
 
 | Field | Values | Purpose |
 |---|---|---|
-| **Title** | dot-decimal WBS + description | Hierarchy + searchability (see `board-numbering-conventions`) |
+| **Title** | `<area> : <feature> : <description>` v2 | Searchability + scope-at-a-glance (see `board-operating-model`) |
 | **Body** | structured (see below) | Context for whoever picks it up |
-| **Labels** | `area:*`, `epic`, `cleanup`, others | Cross-cutting filter dimensions |
-| **Status** | Todo / In Progress / Done | Workflow state |
-| **Release** | R0, R1.1, ..., R19, shovel-ready, backlog | Release planning bucket |
-| **Priority** | now / next / later | Active prioritization within release |
-| **Estimate** | XS / S / M / L / XL | Sizing for capacity planning |
-| **Parent issue** | (auto-populated when sub-issue linked) | Hierarchy |
+| **Labels** | `area:*` (required), `cleanup`, `needs:human-only`, `state:*` | Cross-cutting filter dimensions; one `area:*` per item matching title |
+| **Status** | Todo / In Progress / Done | Lifecycle state (see `board-operating-model`) |
+| **Release** | R0, R1.1, ..., R1.5.5, R1.6, R1.6.5, ..., R19 | Release bucket — main R-numbers for product features, half-step for process/doc/platform work |
+| **Priority** | now / next / later | When-within-release; UI rank within priority bucket |
+| **Assignee** | `@anthony-mansfield` or `@bytetalent-ai` | Owner / queue (see `board-operating-model` two-account model) |
+| **Parent issue** | (auto-populated when sub-issue linked via `addSubIssue`) | Hierarchy |
 
 ### Body structure (reader-first, not implementer-first)
 
@@ -67,6 +69,91 @@ Every ticket on the project board has:
 For epic bodies, also include a **Children** section listing planned sub-issues with one-line summaries.
 
 Implementer-level detail (specific files, function signatures, exact migrations) goes in the worker dispatch prompt, NOT in the issue body. The body stays reader-first; the dispatch brief can be expansive.
+
+## Ticket completeness assessment — eight dimensions
+
+Before dispatching a worker on a ticket — or during a sweep grooming pass — assess each ticket against eight dimensions. **A ticket failing on any dimension is not ready** and either needs editing, gating, or demoting.
+
+This is the heart of grooming. Every other section in this skill (fields, body, hierarchy, hygiene routines) feeds into these dimensions. If you only have time for one thing during grooming, run this assessment.
+
+### The eight dimensions
+
+**1. Title convention** — matches v2 format `<area> : <feature> : <description>` (see `board-operating-model/SKILL.md`). No `[prefix]`, no R-numbers, no parent refs in title. The first field matches an `area:*` label.
+
+**2. Field coverage** — Release set, Priority set (`now` / `next` / `later`), Status set (`Todo` for new), `area:*` label matching the title's first field, parent issue linked if it's a sub-issue, assignee set per the two-account model.
+
+**3. Body completeness** — has `## Why`, `## What` (or scope), `## Done when` with verifiable acceptance criteria, `## Refs`. Body is reader-first, not implementer-detail. For epics, also includes a `## Children` (or sub-issue rollup) section.
+
+**4. Human dependencies** — does the work require a human?
+- **Account creation** (Clerk users, GitHub accounts, third-party service accounts) → human
+- **OAuth / API client registration** at a third-party dashboard → human
+- **Secret rotation / sensitive config** that the agent can't view → human
+- **Stakeholder decision** that needs Anthony's judgment (scope, design direction, prioritization) → human
+- **Real-account UAT** that needs Anthony's email/identity → human
+
+If any apply: `needs:human-only` label + assign `@anthony-mansfield`. Otherwise: assignable to `@bytetalent-ai` for agent dispatch.
+
+**5. Ticket relationships** — this ticket's place in the graph:
+- Parent epic linked via `addSubIssue` GraphQL mutation (NOT just `Refs #N` in body)
+- Non-parent dependencies declared via Blocks/Blocked-by (comment with `Blocked by #N (rationale)`)
+- Related tickets cross-referenced in `## Refs`
+- If 3+ related tickets exist without an umbrella, file an epic first, link as sub-issues
+
+**6. Design requirements** — does the work need a design pass first?
+- Visual changes / new screens / token changes / new component shapes → gate on a `design : <feature> : <description>` ticket
+- Pencil/Figma artifacts referenced in body if applicable
+- If design is unclear: file the design ticket, comment `Blocked by #<design-ticket>` on this one, demote Priority to `later` until design is decided
+
+**7. Sizing / scope** — appropriate for a single PR / single dispatch?
+- XS/S/M → ship as-is
+- L → consider splitting; ship as-is if scope is genuinely cohesive
+- XL → break into sub-issues; this one becomes an epic
+
+**8. Fit for dispatch** — could a worker pick this up without backchannel?
+- Done-when criteria are testable (a worker can know when it's done without asking)
+- Refs link to all needed context (related tickets, prior PRs, design docs)
+- No ambiguous "we'll figure it out" wording
+- Implementer-level detail (file paths, function names, schemas) goes in the dispatch brief, not the body — but the body should still be unambiguous about *what* to build
+
+### Failure modes & remediation
+
+When a ticket fails an assessment dimension:
+
+| Failure | Remediation |
+|---|---|
+| Wrong title format | Retitle in place (`gh issue edit <n> --title "..."`). Fix on sight, don't ask permission. |
+| Missing fields (Release / Priority / Status / `area:*`) | Set them inline. Use GraphQL batch via aliases when grooming many tickets. |
+| Body missing `## Done when` | Comment requesting clarification; if blocking demo, demote Priority to `later`; if non-blocking, leave for human. |
+| Has human dependency, no `needs:human-only` | Apply label + reassign to `@anthony-mansfield`. |
+| Should be sub-issue, isn't | `addSubIssue` GraphQL mutation; remove redundant parent ref from body if there. |
+| 3+ related tickets, no epic | File the epic first; bulk-link tickets as sub-issues; back-fill the umbrella body. |
+| Needs design, no design ticket | File design ticket (`design : <feature> : <description>`); comment `Blocked by #<n>` on this one; demote Priority to `later` until design lands. |
+| Scope is XL | Break into sub-issues; promote this one to epic (add `## Children` section to body). |
+| Ambiguous done-when | Comment requesting clarification; demote Priority to `later` until clarified. Don't dispatch. |
+| Stale label (`lane:claude`, `epic`-as-label) | Strip on sight when editing for any other reason. |
+
+### Two grooming modes
+
+**Sweep mode** — periodic pass across all open tickets in a release (or the whole board). Use the eight dimensions as a checklist; produce a punch list of tickets needing edits, then bulk-fix. Best run when starting a new release, after a wave lands, or when the board has accumulated drift.
+
+**Pre-dispatch mode** — single-ticket assessment before sending a worker. Run through the eight dimensions for *this one ticket*; if any fail, fix in place or escalate to human before dispatching. Saves the cost of a worker getting stuck mid-flight on missing context, ambiguous done-when, or a hidden human dependency.
+
+The same dimensions apply in both modes; the cadence and breadth differ.
+
+### Quick checklist (printable)
+
+```
+[ ] 1. Title — `<area> : <feature> : <description>` v2, no prefixes
+[ ] 2. Fields — Release, Priority, Status, area:* label, assignee set
+[ ] 3. Body — Why, What, Done when, Refs (epic: + Children)
+[ ] 4. Human deps — needs:human-only if applicable
+[ ] 5. Relationships — parent linked, blockers declared, refs cross-linked
+[ ] 6. Design — gated on design ticket if visual work
+[ ] 7. Scope — fits one PR, or epic'd if not
+[ ] 8. Dispatch-ready — testable done-when, complete refs, no ambiguity
+```
+
+If all eight pass → ready. Any fail → fix or escalate before dispatch.
 
 ## PR title conventions
 
@@ -221,8 +308,16 @@ Cache board state to a local JSON snapshot once per session; mutate via aliases 
 
 ## When to invoke this skill
 
+- **Pre-dispatch on a ticket** → run the eight-dimension assessment; if any fail, fix or escalate before sending a worker
+- **Sweep grooming session** → run the eight-dimension assessment across all open tickets in a release; bulk-fix the failures
 - Filing a new wave of related work → use the hierarchy + body sections
 - Configuring a new project board → use the views + workflows sections
-- Running a grooming session → use the periodic hygiene routines
 - Restructuring an epic mid-flight → use the hierarchy + anti-patterns sections
 - After a multi-day work session → run the weekly hygiene routines on the board
+
+## See also
+
+- `board-operating-model/SKILL.md` — the rules this skill enforces (title format, fields, labels, hierarchy, two-account assignee model, half-step releases)
+- `worker-dispatch-orchestration/SKILL.md` — pre-dispatch research + brief authoring (the next step after pre-dispatch grooming passes)
+- `github-api-efficiency/SKILL.md` — bundle, cache, batch — essential when sweep-grooming many tickets
+- `lessons-learned-discipline/SKILL.md` — where lessons go when grooming surfaces recurring failure modes
