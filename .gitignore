@@ -11,3 +11,6 @@ desktop.ini
 
 # Node (in case anyone scaffolds a search tool here later)
 node_modules/
+
+# Generated review output
+.tmp/

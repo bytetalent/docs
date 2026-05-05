@@ -196,6 +196,44 @@ The script never writes outside the current working directory.
 
 **Vendoring:** Sub-issue [#466](https://github.com/bytetalent/bt-ai-web/issues/466) tracks copying this script into each base repo via the skill vendoring pipeline. Until then, copy `bin/lesson` manually.
 
+**Sister tool:** See `bin/self-review` — generates a structured review checklist from the loaded skills without running interactive prompts.
+
+### `bin/self-review` — skill-based review checklist
+
+A non-interactive script that loads applicable skills for the current repo, extracts their checklist items, and writes a structured `.md` checklist to `.tmp/`.
+
+**Usage** (run from the repo you want to review):
+
+```sh
+node /path/to/bytetalent-docs/bin/self-review
+# or, if executable and on PATH:
+bin/self-review
+
+# Override the skills directory:
+bin/self-review --skills-dir /path/to/bytetalent/docs/skills
+```
+
+**What it does:**
+
+1. Detects the repo's stack (Next.js, Astro, Cloudflare Worker) from config file presence.
+2. Loads every `SKILL.md` under `skills/` — local repo skills first, falls back to sibling `bytetalent/docs/skills/`.
+3. Filters to universal skills plus stack-matched ones.
+4. Extracts checklist items from the rule/anti-pattern sections of each skill.
+5. Writes `.tmp/self-review-<timestamp>.md` and prints a one-line summary.
+
+**Output format:**
+
+```
+▸ skills/api/api-cors-policy
+  [ ] Never use * for credentialed requests — enumerate specific allowed origins
+  [ ] Restrict Allow-Methods to what the endpoint actually serves
+  [ ] Set Access-Control-Max-Age to reduce preflight chatter
+```
+
+**What it does NOT do (MVP):** Auto-enforce rules or report pass/fail. The checklist is for a human or agent to walk. Rule enforcement is the next iteration.
+
+The script never writes outside the current working directory.
+
 ## License
 
 Proprietary — Bytetalent internal use.
