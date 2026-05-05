@@ -40,6 +40,28 @@ infra : pre-prod-hardening : auth + IP allowlist + Cloudflare + crons
 process : docs-reorg : skills + guides into category subdirs
 ```
 
+## Product-area prefix on `<feature>` keys
+
+The product divides into two complementary areas. When a feature clearly belongs to one of them, **prefix the `<feature>` key** with `agency-` or `project-`. This makes the polish-vs-core distinction visible in titles and filterable on the board.
+
+| Product area | What it is | Examples |
+|---|---|---|
+| **Agency features** | Workflows for agency users themselves — onboarding, dashboard, clients management, invitations, billing, connections, settings | `agency-onboarding`, `agency-dashboard`, `agency-billing`, `agency-invitations`, `agency-connections`, `agency-clients` |
+| **Project deliverables** | What a project produces — the 5-phase wizard, phase outputs, templates, code-gen, deliverable portal | `project-wizard`, `project-prd-phase`, `project-design-phase`, `project-codegen`, `project-deliverable-portal`, `project-templates` |
+
+**When NOT to prefix** (no product-area home — cross-cutting, infra, or process):
+- `auth-google-oauth`, `pre-prod-hardening`, `edge-protection` (infra)
+- `branch-hygiene`, `board-grooming`, `repo-rename` (process)
+- `template-system`, `manifest-schema` (platform-level, not specific to agency or project surface)
+- `clerk-auth`, `vault-secrets` (security infrastructure)
+
+**Why prefix**:
+- Polish vs core: agency-* items typically read as workflow polish; project-* items typically read as the core demo path. The prefix surfaces this naturally without a separate label.
+- Filterability: scan the board, immediately see which items are agency UX vs project pipeline.
+- Mental model reinforcement: "show me working software" = project-* items shipping; "agency UX" = agency-* items.
+
+**When ambiguous**: pick the dominant side. If a feature is "agency UX in service of project creation" (e.g., the project wizard's client picker), it's `project-wizard` because the dominant deliverable is the project. If it's "project signal surfaced into agency dashboard" (e.g., recent-projects list), it's `agency-dashboard` because the dominant home is the dashboard surface.
+
 ## Area set (12)
 
 Aligns with `area:*` labels on the repo. Tight boundaries:
@@ -56,7 +78,7 @@ Aligns with `area:*` labels on the repo. Tight boundaries:
 | `platform` | Templates, bases, scaffolding, cross-cutting platform code, manifest schemas |
 | `prompts` | Phase prompts (PRD, brand-kit, design, arch, code-gen) |
 | `skills` | Skill authoring (universal/base/template/product), skill metadata, skill consolidation |
-| `testing` | Test files + test infrastructure |
+| `tests` | Test files + test infrastructure |
 | `security` | Auth, secrets handling, prompt-injection review, RLS bypass review |
 
 Notes on boundaries:
