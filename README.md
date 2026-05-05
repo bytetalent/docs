@@ -60,8 +60,9 @@ Example structure for a base repo's `docs/`:
 - [`guide-base-development.md`](guide-base-development.md) — how a Bytetalent base repo is structured, modified, versioned; how to add a base for a new stack
 - [`guide-template-development.md`](guide-template-development.md) — how a template is structured + paired with design; the matrix concept; pairing rule + lint; versioning + pinning
 
-**Tooling:**
+**Agentic coding:**
 
+- [`guides/agentic-coding.md`](guides/agentic-coding.md) — layer cake, lesson-capture flow, what every generated repo carries, upstream feedback model, memory seeds, self-review patterns
 - [`guide-agents.md`](guide-agents.md) — autonomous Claude Code (and other agentic CLI) settings: the committed `.claude/settings.json` baseline, what to allow + deny + why, the silent-stall failure mode it prevents
 - [`guide-pencil.md`](guide-pencil.md) — Pencil MCP capabilities for `.pen` design files
 - [`guide-connections.md`](guide-connections.md) — what each provider connection does, how to revoke, what breaks if revoked (Anthropic, GitHub App, Vercel, Cloudflare, Supabase, Clerk, Stripe, Resend, Upstash, Sentry)
